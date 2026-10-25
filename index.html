@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Люки дымоудаления: расчёт стоимости | Афтон</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;              /* фон */
+    --sidebar: #f5f5f5;         /* правая колонка квиза */
+    --line: #e3e3e3;            /* линии, рамки */
+    --dot: #ececec;             /* кружок варианта ответа */
+    --primary: #e0222e;         /* красный из логотипа */
+    --primary-text: #ffffff;
+    --primary-50: rgba(224, 34, 46, .5);
+    --text: #1d1d1f;
+    --text-70: rgba(29, 29, 31, .65);
+    --card: #f2f2f2;
+    --card-text: #363636;
+    --error: #c62828;
+    --ease-start: cubic-bezier(.71, .09, .74, .91);
+    --ease-step: cubic-bezier(.61, .3, .8, .97);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: "Onest", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  [hidden] { display: none !important; }
+
+  /* ---------- Кнопка с бликом ---------- */
+  .q-btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--primary); color: var(--primary-text); border-radius: 4px; box-shadow: 0 3px 10px 0 var(--primary-50); transition: box-shadow .2s ease-in, background .2s ease-in; }
+  .q-btn:hover { box-shadow: 0 5px 16px 0 rgba(224, 34, 46, .55); background: #c81c27; }
+  .q-btn:disabled { cursor: default; }
+  .q-btn::after { content: ""; position: absolute; top: -50%; bottom: -50%; left: -20%; width: 20px; background: linear-gradient(90deg, rgba(255,255,255,.1) 10%, rgba(255,255,255,.2) 20%, rgba(255,255,255,.6)); transform: rotate(25deg); animation: blick 6s linear infinite; pointer-events: none; }
+  @keyframes blick { 15%, 100% { left: 120%; } }
+  .q-btn:focus-visible, .choice:focus-within, .nav-back:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+  /* ---------- Бонусы ---------- */
+  .bonus { position: relative; min-width: 0; max-width: 260px; flex: 1; display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #fff; border: 1px solid #eeeeee; border-radius: 14px; box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .18); transition: border-color .3s, box-shadow .3s, transform .3s; }
+  .bonus:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -12px rgba(224, 34, 46, .35); }
+  .b-ic { flex: none; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #ff4b55, #e0222e); color: #fff; display: grid; place-items: center; box-shadow: 0 4px 10px -4px rgba(224, 34, 46, .6); }
+  .b-ic svg { width: 18px; height: 18px; }
+  .b-txt { min-width: 0; }
+  .b-txt b { display: block; font-size: 14px; font-weight: 600; line-height: 18px; color: var(--text); }
+  .b-txt small { display: block; font-size: 12px; line-height: 16px; color: var(--text-70); margin-top: 2px; }
+  .b-lock { margin-left: auto; flex: none; width: 22px; height: 22px; border-radius: 50%; background: #f3f3f3; color: #9a9a9a; display: grid; place-items: center; transition: background .3s, color .3s; }
+  .b-lock svg { width: 11px; height: 11px; }
+  .bonus.open { border-color: var(--primary-50); }
+  .bonus.open .b-lock { background: var(--primary); color: #fff; animation: pop .4s ease-out; }
+  @keyframes pop { 0% { transform: scale(.5); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+  /* =================== СТАРТОВАЯ СТРАНИЦА =================== */
+  .start { position: fixed; inset: 0; display: flex; }
+  .start-media { width: 58.33%; padding: 12px 0 12px 12px; flex: none; }
+  .media-box { position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; }
+  .media-box video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .media-ph { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 14px; color: rgba(255,255,255,.5); font-size: 14px; background: radial-gradient(ellipse at center, #1b1d1c 0%, #000 75%); }
+  .media-ph svg { width: 72px; height: 72px; }
+  .media-box.empty .media-ph { display: flex; }
+  .mute { position: absolute; left: 16px; bottom: 16px; width: 40px; height: 40px; display: grid; place-items: center; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+  .mute svg { width: 30px; height: 30px; }
+  .media-box.empty .mute { display: none; }
+
+  .start-panel { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .start-head { padding: 12px 32px; border-bottom: 1px solid var(--line); font-size: 14px; font-weight: 500; line-height: 1.25; }
+  .logo { display: block; height: 54px; width: auto; }
+  .start-body { flex: 1; display: flex; flex-direction: column; padding: 53px 32px 28px; overflow: auto; }
+  .start-body h1 { font-size: 30px; line-height: 36px; font-weight: 700; margin-bottom: 16px; }
+  .benefits { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .benefits p { font-size: 18px; line-height: 24px; font-weight: 500; color: var(--text-70); }
+  .start-btn { align-self: flex-start; min-height: 56px; padding: 12px 30px; font-size: 18px; line-height: 1.15; font-weight: 400; }
+  .start-bonuses { margin-top: 20px; }
+  .start-bonuses > span { display: block; font-size: 14px; font-weight: 500; line-height: 20px; margin-bottom: 8px; }
+  .bonus-row { display: flex; gap: 8px; }
+  .start-foot { margin-top: auto; padding-top: 28px; font-size: 10px; line-height: 14px; font-weight: 500; color: var(--text-70); max-width: 304px; }
+
+  /* Переход старт → квиз (как в оригинале: 0.75s) */
+  .layer { position: fixed; inset: 0; background: var(--bg); transform: translateX(58.33%); visibility: hidden; z-index: 5; }
+  .start.leaving .start-head { animation: hide-up .75s var(--ease-start) forwards; }
+  .start.leaving .start-body h1,
+  .start.leaving .benefits { animation: hide-right .75s var(--ease-start) forwards; }
+  .start.leaving .start-btn { animation: hide-right .75s 50ms var(--ease-start) forwards; }
+  .start.leaving .start-bonuses { animation: hide-right .75s .1s var(--ease-start) forwards; }
+  .start.leaving .start-foot { animation: hide-down .75s var(--ease-start) forwards; }
+  .start.leaving + .layer { visibility: visible; animation: slide-layer .75s var(--ease-start) forwards; }
+  @keyframes hide-up { to { opacity: 0; transform: translateY(-100px); } }
+  @keyframes hide-down { to { opacity: 0; transform: translateY(100px); } }
+  @keyframes hide-right { to { opacity: 0; transform: translateX(100px); } }
+  @keyframes slide-layer { from { transform: translateX(58.33%); } to { transform: translateX(0); } }
+
+  /* =================== КВИЗ =================== */
+  .quiz { position: fixed; inset: 0; display: flex; animation: fade .15s ease-out; }
+  @keyframes fade { from { opacity: 0; } }
+  .quiz-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .quiz-head { display: flex; align-items: center; gap: 20px; padding: 10px 72px; border-bottom: 1px solid var(--line); }
+  .quiz-head .logo { height: 34px; padding-right: 20px; border-right: 1px solid var(--line); }
+  .quiz-head h3 { font-family: "Times New Roman", Times, serif; font-size: 14px; line-height: 22px; font-weight: 400; color: var(--text); opacity: .8; }
+  .quiz-content { flex: 1; min-height: 0; overflow: auto; padding: 22px 72px 16px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  .quiz-content::-webkit-scrollbar { width: 6px; }
+  .quiz-content::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+  .q-wrap { max-width: 840px; transition: opacity .17s var(--ease-step), transform .17s var(--ease-step); }
+  .q-wrap.out { opacity: 0; transform: translateX(-20px); }
+  .q-wrap.pre { opacity: 0; transform: translateX(20px); transition: none; }
+  .q-title { font-size: 32px; line-height: 1.2; font-weight: 600; margin-bottom: 16px; }
+  .q-sub { font-size: 15px; color: var(--text-70); margin: -6px 0 16px; }
+
+  .variants { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-bottom: 6px; }
+  .variant { border: 1px solid var(--line); border-radius: 5px; background: var(--bg); transition: box-shadow .15s ease-out, border-color .15s ease-out, opacity .17s ease-in-out, transform .17s ease-in-out; }
+  .variant:hover { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12); }
+  .variant.checked { border-color: var(--primary-50); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12); }
+  .q-wrap.pre .variant { opacity: 0; transform: translateX(20px); transition: none; }
+  .choice { display: flex; align-items: center; padding: 12.8px 16px; cursor: pointer; user-select: none; position: relative; }
+  .choice input { position: absolute; opacity: 0; pointer-events: none; }
+  .check { flex: none; position: relative; width: 20px; height: 20px; border-radius: 50%; background: var(--dot); transition: background .15s ease-out; }
+  .check::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--primary); transform: scale(0); transition: transform .15s ease-out; }
+  .variant.checked .check::before { transform: scale(.5); }
+  .choice-label { padding-left: 16px; font-size: 16px; line-height: 1.25; color: var(--text); }
+
+  /* карточки с картинкой */
+  .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding-bottom: 6px; }
+  .variant.card { overflow: hidden; border: 1px solid #ececec; border-radius: 8px; background: #fff; box-shadow: 0 2px 10px -6px rgba(0, 0, 0, .15); }
+  .variant.card:hover { box-shadow: 0 10px 24px -14px rgba(0, 0, 0, .3); transform: translateY(-2px); }
+  .variant.card.checked { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), 0 10px 24px -14px rgba(224, 34, 46, .45); }
+  .card-in { display: block; cursor: pointer; user-select: none; }
+  .card-in input { position: absolute; opacity: 0; pointer-events: none; }
+  .card-img { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: #eef0f3; }
+  .card-img svg, .card-img img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .5s ease; }
+  .variant.card:hover .card-img svg, .variant.card:hover .card-img img { transform: scale(1.04); }
+  .card-badge { position: absolute; right: 0; bottom: 0; padding: 7px 14px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .card-tick { position: absolute; top: 10px; left: 10px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .2); display: grid; place-items: center; transform: scale(0); transition: transform .2s ease-out; }
+  .card-tick::after { content: ""; width: 6px; height: 11px; margin-top: -2px; border: solid var(--primary); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+  .variant.card.checked .card-tick { transform: scale(1); }
+  .card-cap { display: block; padding: 14px 16px 16px; font-size: 15px; line-height: 1.35; color: #555; }
+  /* обычные варианты в том же стиле */
+  .variant:not(.card) { border-color: #ececec; border-radius: 8px; background: #fff; box-shadow: 0 2px 10px -6px rgba(0, 0, 0, .15); }
+  .variant.checked:not(.card) { border-color: var(--primary); }
+
+  .other { margin-top: 16px; }
+  .field-input { width: 100%; height: 52px; padding: 0 16px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; color: var(--text); transition: border-color .15s, box-shadow .15s; }
+  .field-input::placeholder { color: rgba(29, 29, 31, .4); }
+  .field-input:focus { outline: none; border-color: var(--primary-50); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12); }
+
+  .upload { margin-top: 16px; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px dashed rgba(29,29,31,.25); border-radius: 5px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .upload:hover, .upload.over { border-color: var(--primary); background: rgba(224,34,46,.03); }
+  .upload input { display: none; }
+  .upload .ic { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: #fff; display: grid; place-items: center; }
+  .upload .ic svg { width: 18px; height: 18px; }
+  .upload b { display: block; font-weight: 500; word-break: break-all; }
+  .upload small { color: var(--text-70); font-size: 13px; }
+  .upload .rm { margin-left: auto; width: 32px; height: 32px; font-size: 22px; color: var(--text-70); }
+
+  /* Форма заявки */
+  .lead { max-width: 420px; display: flex; flex-direction: column; gap: 12px; }
+  .lead .err { display: none; color: var(--error); font-size: 12px; margin-top: 4px; }
+  .lead .invalid .field-input { border-color: var(--error); }
+  .lead .invalid .err { display: block; }
+  .consent { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; line-height: 1.4; color: var(--text-70); cursor: pointer; margin-top: 2px; }
+  .consent input { position: absolute; opacity: 0; }
+  .consent .box { flex: none; width: 18px; height: 18px; border-radius: 4px; border: 2px solid #c9c9c9; position: relative; transition: background .15s, border-color .15s; }
+  .consent input:checked + .box { background: var(--primary); border-color: var(--primary); }
+  .consent input:checked + .box::after { content: ""; position: absolute; left: 4px; top: 0; width: 5px; height: 10px; border: solid var(--primary-text); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .consent.invalid { color: var(--error); }
+  .lead-submit { height: 56px; font-size: 18px; margin-top: 6px; }
+  .lead-submit::after { width: 45px; animation: blick-submit 3s linear infinite; }
+  @keyframes blick-submit { 60% { left: 100%; } 100% { left: 130%; } }
+  .trap { position: absolute; left: -9999px; opacity: 0; width: 1px; height: 1px; }
+
+  /* Финал */
+  .done-mark { width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: var(--primary-text); display: grid; place-items: center; margin-bottom: 20px; }
+  .done-mark svg { width: 26px; height: 26px; }
+  .done-mark path { stroke-dasharray: 30; stroke-dashoffset: 30; animation: draw .5s .25s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .data { border-top: 1px solid var(--line); margin-bottom: 20px; max-width: 560px; }
+  .data div { display: grid; grid-template-columns: 160px 1fr; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .done .q-title { margin-bottom: 12px; }
+  .done-mark { width: 48px; height: 48px; margin-bottom: 14px; }
+  .data dt { color: var(--text-70); }
+  .data dd { font-weight: 500; word-break: break-word; }
+  .done-bonus-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  .done .bonus-row { margin-bottom: 24px; }
+  .redirect { font-size: 13px; color: var(--text-70); max-width: 488px; }
+  .redirect .bar { height: 3px; border-radius: 2px; background: var(--line); margin-top: 8px; overflow: hidden; }
+  .redirect .bar i { display: block; height: 100%; background: var(--primary); transform-origin: left; }
+
+  /* Нижняя панель */
+  .quiz-nav { display: flex; align-items: center; gap: 20px; padding: 16px 74px 28px 74px; }
+  .ready { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+  .ready svg { width: 28px; height: 28px; transform: rotate(-90deg); }
+  .ready .track { stroke: var(--line); }
+  .ready .val { stroke: var(--primary); transition: stroke-dashoffset .3s ease; }
+  .ready-text { font-family: "Times New Roman", Times, serif; font-style: italic; font-size: 13px; line-height: 15px; font-weight: 500; color: var(--text-70); }
+  .ready-text b { display: block; color: var(--primary); font-weight: 700; }
+  .nav-back { width: 43px; height: 43px; border-radius: 4px; border: 1px solid rgba(0,0,0,.1); color: rgba(0,0,0,.35); display: grid; place-items: center; transition: .2s ease-out; }
+  .nav-back:hover { color: var(--text); border-color: rgba(0,0,0,.3); }
+  .nav-back svg { width: 16px; height: 16px; }
+  .nav-next-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .nav-next { height: 43px; padding: 0 16px 0 22px; font-size: 16px; font-weight: 500; transition: box-shadow .2s ease-in, color .2s ease-out, opacity .2s; }
+  .nav-next svg { width: 16px; height: 16px; }
+  .nav-next:disabled { opacity: .55; box-shadow: none; }
+  .nav-next:disabled::after { display: none; }
+  .enter-hint { position: absolute; top: calc(100% + 6px); white-space: nowrap; font-size: 11px; color: var(--text-70); }
+  .enter-hint b { color: var(--text); font-weight: 600; }
+
+  .quiz-side { position: relative; overflow: hidden; width: 320px; flex: none; background: linear-gradient(180deg, #fff6f6 0%, #f6f6f6 60%); border-left: 1px solid var(--line); padding: 24px 20px 28px; display: flex; flex-direction: column; gap: 12px; }
+  .quiz-side::before { content: ""; position: absolute; width: 280px; height: 280px; right: -130px; top: -130px; border-radius: 50%; background: radial-gradient(circle, rgba(224, 34, 46, .16), transparent 70%); pointer-events: none; }
+  .side-title { position: relative; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-70); }
+  .side-list { position: relative; display: flex; flex-direction: column; gap: 10px; }
+  .quiz-side .bonus { max-width: none; flex: none; }
+  .side-person { position: relative; display: flex; gap: 12px; margin-top: 14px; padding-top: 18px; border-top: 1px dashed #e2e2e2; }
+  .sp-avatar { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 600; font-size: 18px; display: grid; place-items: center; overflow: hidden; }
+  .sp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .side-person b { font-size: 14px; font-weight: 600; }
+  .side-person span { font-size: 12px; color: var(--text-70); margin-left: 6px; }
+  .side-person p { font-size: 13px; line-height: 1.45; color: #444; margin-top: 4px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+
+  /* ---------- Мобильная версия ---------- */
+  @media (max-width: 818px) {
+    .start { position: static; flex-direction: column; min-height: 100vh; }
+    .start-media { width: 100%; padding: 0; aspect-ratio: 16 / 10; }
+    .start-body { padding: 28px 20px 24px; }
+    .start-head { padding: 14px 20px; }
+    .start-body h1 { font-size: 26px; line-height: 31px; }
+    .benefits p { font-size: 16px; }
+    .start-btn { align-self: stretch; }
+    .layer { display: none; }
+    .start.leaving { display: none; }
+    .quiz { position: static; flex-direction: column-reverse; justify-content: flex-end; min-height: 100vh; }
+    .quiz-side { width: 100%; padding: 12px; border-left: 0; border-bottom: 1px solid var(--line); }
+    .side-title, .side-person, .b-txt small, .b-lock { display: none; }
+    .side-list { flex-direction: row; }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .card-badge { font-size: 12px; padding: 5px 10px; }
+    .card-cap { font-size: 13px; padding: 10px 12px 12px; }
+    .quiz-side .bonus { flex: 1; padding: 10px; gap: 8px; }
+    .b-ic { width: 30px; height: 30px; }
+    .b-txt b { font-size: 12px; line-height: 16px; }
+    .quiz-head { padding: 12px 20px; }
+    .quiz-content { padding: 18px 20px; }
+    .q-title { font-size: 24px; }
+    .variants { grid-template-columns: 1fr; gap: 10px; }
+    .quiz-nav { padding: 12px 20px 20px; }
+    .enter-hint { display: none; }
+    .data div { grid-template-columns: 1fr; gap: 2px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- =================== СТАРТОВАЯ СТРАНИЦА =================== -->
+<section class="start" id="start">
+  <div class="start-media">
+    <!-- Видео: положите video.mp4 рядом с index.html -->
+    <div class="media-box" id="mediaBox">
+      <video id="video" src="video.mp4" autoplay muted loop playsinline></video>
+      <div class="media-ph">
+        <svg viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="36" cy="36" r="34"/><path d="M29 24v24l20-12z" fill="currentColor" stroke="none"/></svg>
+        Здесь будет видео
+      </div>
+      <button class="mute" id="mute" aria-label="Включить звук">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="muteIcon"><path d="M3 9v6h4l5 5V4L7 9H3zm13.59 3L19 9.59 17.59 8.17 15.17 10.6 12.76 8.17 11.34 9.59 13.76 12l-2.42 2.41 1.42 1.42 2.41-2.42 2.42 2.42L19 14.41z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="start-panel">
+    <div class="start-head"><img class="logo" src="logo.png" alt="АФТОН, противопожарные системы"></div>
+    <div class="start-body">
+      <h1>Сколько будут стоить люки дымоудаления на вашем объекте?</h1>
+      <!-- Преимущества: замените на свои -->
+      <div class="benefits">
+        <p>Ответьте на пару вопросов, и мы пришлём расчёт</p>
+        <p>Одно- и двухстворчатые, взрывоустойчивые</p>
+        <p>Приводы и щит управления посчитаем вместе с люками</p>
+        <p>Есть проект? Прикрепите, так выйдет точнее</p>
+        <p>Цену фиксируем в договоре</p>
+      </div>
+      <button class="q-btn start-btn" id="startBtn">Посчитать мой объект</button>
+      <div class="start-bonuses">
+        <span>За заявку с сайта</span>
+        <div class="bonus-row" data-bonuses></div>
+      </div>
+      <!-- Реквизиты: замените на настоящие -->
+      <div class="start-foot">ООО «АФТОН» ИНН 0000000000 Город, ул. Улица, д. 0</div>
+    </div>
+  </div>
+</section>
+<div class="layer" aria-hidden="true"></div>
+
+<!-- =================== КВИЗ =================== -->
+<section class="quiz" id="quiz" hidden>
+  <div class="quiz-main">
+    <div class="quiz-head"><img class="logo" src="logo.png" alt="АФТОН"><h3>Пара коротких вопросов, и мы посчитаем ваш объект</h3></div>
+    <div class="quiz-content"><div class="q-wrap" id="wrap"></div></div>
+    <div class="quiz-nav" id="nav">
+      <div class="ready" aria-hidden="true">
+        <svg viewBox="0 0 28 28"><circle class="track" cx="14" cy="14" r="12" fill="none" stroke-width="3"/><circle class="val" id="ring" cx="14" cy="14" r="12" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4"/></svg>
+        <div class="ready-text">Готово<b id="pct">0%</b></div>
+      </div>
+      <button class="nav-back" id="back" aria-label="Назад"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 8H3M7 4L3 8l4 4"/></svg></button>
+      <div class="nav-next-wrap">
+        <button class="q-btn nav-next" id="next"><span id="nextText">Далее</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
+        <span class="enter-hint">или нажмите <b>Enter</b></span>
+      </div>
+    </div>
+  </div>
+  <aside class="quiz-side">
+    <div class="side-title">Что вы получите</div>
+    <div class="side-list" data-bonuses></div>
+    <!-- фото: <img src="manager.jpg" alt=""> вместо буквы -->
+    <div class="side-person">
+      <div class="sp-avatar">Л</div>
+      <div>
+        <b>Людмила</b><span>менеджер «Афтон»</span>
+        <p>Посчитаю сама и&nbsp;перезвоню, если в&nbsp;ответах что-то будет непонятно.</p>
+      </div>
+    </div>
+  </aside>
+</section>
+
+<script>
+  // ================= Настройки =================
+  const BONUSES = [
+    { title: 'Скидка 1%', sub: 'на всю смету', icon: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5L5 15"/><circle cx="6" cy="6" r="2"/><circle cx="14" cy="14" r="2"/></svg>' },
+    { title: 'Расчёт бесплатно', sub: 'посчитаем именно ваш объект', icon: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2.5" width="12" height="15" rx="2"/><path d="M7 6h6M7 10h1M10 10h1M13 10h0M7 13.5h1M10 13.5h1M13 13.5h0"/></svg>' }
+  ];
+  const ICON_LOCK = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="5.5" width="7" height="5" rx="1"/><path d="M4 5.5V4a2 2 0 014 0v1.5"/></svg>';
+  const ICON_OK = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 6.2l2.3 2.3 4.7-5"/></svg>';
+  const bonusHTML = open => BONUSES.map(b => `<div class="bonus ${open ? 'open' : ''}"><span class="b-ic">${b.icon}</span><div class="b-txt"><b>${b.title}</b><small>${b.sub}</small></div><span class="b-lock" title="${open ? 'Бонус ваш' : 'Откроется после заявки'}">${open ? ICON_OK : ICON_LOCK}</span></div>`).join('');
+  const REDIRECT_SECONDS = 10;
+
+  // картинки для карточек; чтобы поставить фото, укажите img: 'photo.jpg' у нужной карточки
+  const SKY = '<rect width="320" height="180" fill="#eef0f3"/>';
+  const ROOF = '<rect y="136" width="320" height="44" fill="#d9dde3"/><line x1="0" y1="136" x2="320" y2="136" stroke="#2b2f36" stroke-width="2"/>';
+  const CURB = '<rect x="96" y="108" width="128" height="28" fill="#2b2f36"/><rect x="96" y="108" width="128" height="4" fill="#e0222e"/><rect x="90" y="101" width="140" height="8" fill="#41464f"/>';
+  const SMOKE = '<g fill="none" stroke="#a9aeb6" stroke-width="9" stroke-linecap="round" opacity=".55"><path d="M150 100 C140 80 168 70 156 48 C146 32 166 22 160 8"/><path d="M174 100 C184 82 162 68 178 48 C190 32 174 20 182 6"/></g>';
+  const svg = body => `<svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice">${SKY}${body}</svg>`;
+  const ART = {
+    single: svg(SMOKE + ROOF + CURB + '<polygon points="92,101 150,22 158,27 100,104" fill="#c9d3db" stroke="#2b2f36" stroke-width="2"/><line x1="112" y1="108" x2="124" y2="62" stroke="#e0222e" stroke-width="3"/>'),
+    double: svg(SMOKE + ROOF + CURB + '<polygon points="92,101 118,46 124,49 98,104" fill="#c9d3db" stroke="#2b2f36" stroke-width="2"/><polygon points="228,101 202,46 196,49 222,104" fill="#c9d3db" stroke="#2b2f36" stroke-width="2"/><line x1="108" y1="108" x2="110" y2="74" stroke="#e0222e" stroke-width="3"/><line x1="212" y1="108" x2="210" y2="74" stroke="#e0222e" stroke-width="3"/>'),
+    blast: svg(ROOF + CURB + '<g stroke="#e0222e" stroke-width="3" stroke-linecap="round"><path d="M160 86V40M128 92l-22-30M192 92l22-30M112 100L80 88M208 100l32-12"/></g><polygon points="104,96 216,96 206,74 114,74" fill="#c9d3db" stroke="#2b2f36" stroke-width="2"/><g transform="translate(236 18)"><polygon points="20,0 40,11 40,33 20,44 0,33 0,11" fill="#e0222e"/><text x="20" y="28" text-anchor="middle" font-family="Arial" font-weight="700" font-size="15" fill="#fff">Ex</text></g>'),
+    unknown: svg(ROOF + '<rect x="96" y="108" width="128" height="28" fill="#c3c8cf"/><rect x="90" y="101" width="140" height="8" fill="#b3b8c0"/><circle cx="160" cy="62" r="34" fill="#e0222e"/><text x="160" y="76" text-anchor="middle" font-family="Arial" font-weight="700" font-size="40" fill="#fff">?</text>'),
+    auto: svg('<rect width="320" height="20" fill="#d9dde3"/><line x1="0" y1="20" x2="320" y2="20" stroke="#2b2f36" stroke-width="2"/><ellipse cx="246" cy="28" rx="22" ry="8" fill="#fff" stroke="#2b2f36" stroke-width="2"/><circle cx="246" cy="29" r="2.5" fill="#e0222e"/><g fill="none" stroke="#2b2f36" stroke-width="2" stroke-dasharray="5 4"><path d="M148 64 H200 V28 H224"/><path d="M148 140 H184 V128 H206"/></g><rect x="44" y="40" width="104" height="128" fill="#2b2f36"/><rect x="52" y="48" width="88" height="112" fill="#41464f"/><rect x="62" y="58" width="68" height="22" fill="#1d2025"/><circle cx="70" cy="96" r="4" fill="#4cc27a"/><circle cx="84" cy="96" r="4" fill="#e0222e"/><circle cx="96" cy="126" r="15" fill="#e0222e" stroke="#1d2025" stroke-width="3"/><rect x="206" y="118" width="78" height="20" fill="#41464f"/><rect x="284" y="124" width="24" height="8" fill="#8c9199"/>'),
+    closed: svg(ROOF + CURB + '<polygon points="92,101 228,101 220,92 100,92" fill="#c9d3db" stroke="#2b2f36" stroke-width="2"/><path d="M118 96 L132 96" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'),
+    maybe: svg(ROOF + CURB + '<polygon points="92,101 228,101 220,92 100,92" fill="#c9d3db" stroke="#2b2f36" stroke-width="2"/><rect x="214" y="22" width="62" height="78" rx="4" fill="#2b2f36"/><circle cx="245" cy="70" r="10" fill="#e0222e"/><rect x="224" y="32" width="42" height="14" fill="#1d2025"/><circle cx="96" cy="50" r="24" fill="#fff" stroke="#e0222e" stroke-width="3"/><text x="96" y="60" text-anchor="middle" font-family="Arial" font-weight="700" font-size="28" fill="#e0222e">?</text>'),
+    project: svg('<g transform="rotate(-4 150 92)"><rect x="40" y="16" width="210" height="148" fill="#fff" stroke="#d9dde3"/><g stroke="#e9ebee"><path d="M40 36h210M40 56h210M40 76h210M40 96h210M40 116h210M40 136h210M60 16v148M90 16v148M120 16v148M150 16v148M180 16v148M210 16v148M240 16v148"/></g><rect x="60" y="36" width="170" height="110" fill="none" stroke="#2b2f36" stroke-width="2.5"/><path d="M140 36v56M140 112v34M60 92h56M164 92h66" stroke="#2b2f36" stroke-width="2"/><g fill="#e0222e"><rect x="86" y="56" width="12" height="12"/><rect x="180" y="56" width="12" height="12"/><rect x="86" y="118" width="12" height="12"/><rect x="190" y="118" width="12" height="12"/></g></g><rect x="236" y="96" width="62" height="78" fill="#2b2f36"/><rect x="243" y="103" width="48" height="15" fill="#c9d3db"/><g fill="#5b6068"><rect x="243" y="124" width="13" height="10"/><rect x="260" y="124" width="13" height="10"/><rect x="277" y="124" width="14" height="10"/><rect x="243" y="139" width="13" height="10"/><rect x="260" y="139" width="13" height="10"/><rect x="243" y="154" width="13" height="10"/><rect x="260" y="154" width="13" height="10"/></g><rect x="277" y="139" width="14" height="25" fill="#e0222e"/>'),
+    form: svg('<rect x="96" y="14" width="128" height="156" rx="6" fill="#fff" stroke="#d9dde3" stroke-width="2"/><rect x="134" y="6" width="52" height="18" rx="4" fill="#2b2f36"/><g stroke-linecap="round"><path d="M114 52l7 7 13-14M114 92l7 7 13-14M114 132l7 7 13-14" stroke="#e0222e" stroke-width="3.5" fill="none"/><path d="M146 52h56M146 92h48M146 132h52" stroke="#c3c8cf" stroke-width="6"/></g>')
+  };
+  ART.skylight = svg(ROOF + '<polygon points="92,136 228,136 262,180 58,180" fill="#fff" opacity=".7"/><circle cx="264" cy="40" r="13" fill="none" stroke="#e0222e" stroke-width="2.5"/><g stroke="#e0222e" stroke-width="2.5" stroke-linecap="round"><path d="M264 16v-7M264 71v-7M240 40h-7M295 40h-7M247 23l-5-5M286 62l-5-5M281 23l5-5M242 62l5-5"/></g><rect x="84" y="114" width="152" height="22" fill="#2b2f36"/><rect x="84" y="114" width="152" height="4" fill="#e0222e"/><path d="M84 114 C 96 46, 224 46, 236 114 Z" fill="#c9d3db" stroke="#2b2f36" stroke-width="2.5"/><path d="M122 114 C 128 70, 192 70, 198 114" fill="none" stroke="#2b2f36" stroke-width="1.5" opacity=".5"/><line x1="160" y1="63" x2="160" y2="114" stroke="#2b2f36" stroke-width="1.5" opacity=".5"/><path d="M104 100 C 110 78, 128 68, 144 67" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>');
+  ART.roof = svg('<rect y="82" width="320" height="98" fill="#e3e6ea"/><rect x="0" y="68" width="130" height="14" fill="#8c9199"/><rect x="190" y="68" width="130" height="14" fill="#8c9199"/><line x1="0" y1="68" x2="130" y2="68" stroke="#2b2f36" stroke-width="2"/><line x1="190" y1="68" x2="320" y2="68" stroke="#2b2f36" stroke-width="2"/><rect x="124" y="56" width="8" height="26" fill="#2b2f36"/><rect x="188" y="56" width="8" height="26" fill="#2b2f36"/><polygon points="194,58 204,6 211,7.5 201,59.5" fill="#41464f"/><line x1="198" y1="54" x2="232" y2="68" stroke="#2b2f36" stroke-width="2"/><g stroke="#2b2f36" stroke-width="4"><line x1="146" y1="68" x2="146" y2="180"/><line x1="174" y1="68" x2="174" y2="180"/></g><g stroke="#e0222e" stroke-width="4" stroke-linecap="round"><line x1="146" y1="30" x2="146" y2="68"/><line x1="174" y1="30" x2="174" y2="68"/></g><g stroke="#2b2f36" stroke-width="3"><path d="M146 48h28M146 90h28M146 108h28M146 126h28M146 144h28M146 162h28"/></g>');
+  ART.transom = svg('<rect width="320" height="180" fill="#d9dde3"/><g stroke="#c9ced5" stroke-width="1"><path d="M0 30h320M0 70h320M0 110h320M0 150h320"/></g><rect x="94" y="24" width="132" height="136" fill="#2b2f36"/><rect x="102" y="90" width="116" height="62" fill="#c9d3db" stroke="#41464f" stroke-width="2"/><path d="M110 140 L128 102" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8"/><rect x="102" y="32" width="116" height="52" fill="#1d2025"/><g fill="none" stroke="#a9aeb6" stroke-width="9" stroke-linecap="round" opacity=".6"><path d="M140 30 C134 18 152 12 146 0"/><path d="M178 30 C186 18 168 10 178 -2"/></g><polygon points="92,20 228,20 218,84 102,84" fill="#e3e9ee" stroke="#2b2f36" stroke-width="2.5"/><line x1="104" y1="84" x2="216" y2="84" stroke="#e0222e" stroke-width="4"/><line x1="216" y1="86" x2="230" y2="44" stroke="#e0222e" stroke-width="3"/><rect x="86" y="160" width="148" height="6" fill="#8c9199"/>');
+
+  // продукты на втором экране (порядок = порядок карточек)
+  const PRODUCTS = [
+    { key: 'hatch', value: 'люки дымоудаления', badge: 'Люки дымоудаления', caption: 'Одно- и двухстворчатые, взрывоустойчивые', art: ART.double,
+      typeTitle: 'Какие люки нужны?', types: ['одностворчатые', 'двухстворчатые', 'взрывоустойчивые', 'не знаю, подскажите'],
+      typeCards: [
+        { badge: 'Одностворчатые', caption: 'Одна створка, проём поменьше', art: ART.single },
+        { badge: 'Двухстворчатые', caption: 'Две створки, большой проём', art: ART.double },
+        { badge: 'Взрывоустойчивые', caption: 'Для взрывоопасных помещений', art: ART.blast },
+        { badge: 'Не знаю', caption: 'Подскажем, какие подойдут', art: ART.unknown }
+      ], size: true, auto: true },
+    { key: 'skylight', value: 'зенитные фонари', badge: 'Зенитные фонари', caption: 'Свет и проветривание через кровлю', art: ART.skylight,
+      typeTitle: 'Какие фонари нужны?', types: ['арочные', 'треугольные', 'из поликарбоната', 'не знаю, подскажите'], size: true },
+    { key: 'roof', value: 'выход на крышу', badge: 'Выход на крышу', caption: 'Люки и лестницы на кровлю', art: ART.roof,
+      typeTitle: 'Какой выход на крышу нужен?', types: ['люк выхода на кровлю', 'противопожарный люк', 'люк с лестницей', 'не знаю, подскажите'], size: true },
+    { key: 'auto', value: 'автоматика дымоудаления', badge: 'Автоматика', caption: 'Щиты, приводы и датчики', art: ART.auto,
+      typeTitle: 'Что нужно из автоматики?', types: ['щит управления', 'приводы', 'датчики', 'весь комплект'] },
+    { key: 'transom', value: 'фрамуги дымоудаления', badge: 'Фрамуги дымоудаления', caption: 'Дымоудаление через фасад', art: ART.transom,
+      typeTitle: 'Какие фрамуги нужны?', types: ['верхнеподвесные', 'нижнеподвесные', 'среднеповоротные', 'не знаю, подскажите'], size: true, auto: true },
+    { key: 'byProject', value: 'посчитайте по проекту', badge: 'Посчитайте по проекту', caption: 'Пришлите файл, посчитаем по нему', art: ART.project }
+  ];
+  // картинки для типов остальных продуктов
+  const GLASS = 'fill="#c9d3db" stroke="#2b2f36" stroke-width="2.5"';
+  const SKY_BASE = ROOF + '<polygon points="92,136 228,136 256,180 64,180" fill="#fff" opacity=".7"/>';
+  const XSEC = '<rect y="82" width="320" height="98" fill="#e3e6ea"/><rect x="0" y="68" width="130" height="14" fill="#8c9199"/><rect x="190" y="68" width="130" height="14" fill="#8c9199"/><line x1="0" y1="68" x2="130" y2="68" stroke="#2b2f36" stroke-width="2"/><line x1="190" y1="68" x2="320" y2="68" stroke="#2b2f36" stroke-width="2"/><rect x="124" y="56" width="8" height="26" fill="#2b2f36"/><rect x="188" y="56" width="8" height="26" fill="#2b2f36"/>';
+  const WALL = '<rect x="140" y="0" width="40" height="40" fill="#c3c8cf"/><rect x="140" y="140" width="40" height="40" fill="#c3c8cf"/><path d="M140 0V40H180V0M140 180V140H180V180" fill="none" stroke="#2b2f36" stroke-width="2"/>';
+  const FLOW = '<g fill="none" stroke="#a9aeb6" stroke-width="8" stroke-linecap="round" opacity=".55"><path d="M30 104 C70 84 100 112 140 92 S230 66 290 58"/><path d="M40 128 C80 110 110 128 150 110 S240 90 296 86"/></g>';
+  const sash = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#2b2f36" stroke-width="10" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c9d3db" stroke-width="5" stroke-linecap="round"/>`;
+  Object.assign(ART, {
+    arch: svg(SKY_BASE + '<path d="M120 100 C120 50 230 50 230 100" fill="#dfe5ea" stroke="#2b2f36" stroke-width="2"/><rect x="70" y="114" width="160" height="22" fill="#2b2f36"/><rect x="70" y="114" width="160" height="4" fill="#e0222e"/><path d="M70 114 C70 46 180 46 180 114 Z" ' + GLASS + '/><path d="M125 63 L175 49 M180 114 L230 100" stroke="#2b2f36" stroke-width="2"/><g stroke="#2b2f36" stroke-width="1.4" opacity=".5"><path d="M98 114 C98 70 152 70 152 114"/><path d="M125 63V114"/></g>'),
+    gable: svg(SKY_BASE + '<rect x="70" y="114" width="180" height="22" fill="#2b2f36"/><rect x="70" y="114" width="180" height="4" fill="#e0222e"/><polygon points="70,114 160,50 250,114" ' + GLASS + '/><g stroke="#2b2f36" stroke-width="1.4" opacity=".5"><path d="M100 114L160 50L220 114M130 114L160 50L190 114"/></g><path d="M96 104 L140 72" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>'),
+    poly: svg(SKY_BASE + '<rect x="70" y="114" width="180" height="22" fill="#2b2f36"/><rect x="70" y="114" width="180" height="4" fill="#e0222e"/><path d="M70 114 C76 46 244 46 250 114 Z" fill="#e8d7b0" stroke="#2b2f36" stroke-width="2.5" opacity=".95"/><g stroke="#c9a65e" stroke-width="1.5"><path d="M90 114V82M106 114V70M122 114V63M138 114V59M154 114V57M170 114V57M186 114V59M202 114V63M218 114V70M234 114V82"/></g><path d="M86 100 C92 78 112 66 132 63" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8"/>'),
+    roofHatch: svg(XSEC + '<polygon points="194,58 204,6 211,7.5 201,59.5" fill="#41464f"/><line x1="198" y1="54" x2="232" y2="68" stroke="#2b2f36" stroke-width="2"/><rect x="120" y="128" width="80" height="6" fill="#c3c8cf"/><path d="M160 128 V96" stroke="#e0222e" stroke-width="3" stroke-dasharray="4 4"/><path d="M152 104 L160 94 L168 104" fill="none" stroke="#e0222e" stroke-width="3"/>'),
+    fireHatch: svg(XSEC + '<rect x="130" y="48" width="60" height="14" fill="#41464f"/><rect x="134" y="51" width="52" height="8" fill="#e0222e"/><g transform="translate(238 10)"><circle cx="26" cy="26" r="26" fill="#e0222e"/><path d="M26 10 C34 20 38 26 34 34 C32 40 20 40 18 34 C16 28 22 26 22 20 C26 24 26 26 28 28 C30 22 28 16 26 10Z" fill="#fff"/></g>'),
+    sensors: svg('<rect width="320" height="22" fill="#d9dde3"/><line x1="0" y1="22" x2="320" y2="22" stroke="#2b2f36" stroke-width="2"/><ellipse cx="96" cy="34" rx="36" ry="12" fill="#fff" stroke="#2b2f36" stroke-width="2"/><circle cx="96" cy="36" r="4" fill="#e0222e"/><g fill="none" stroke="#e0222e" stroke-width="2.5" stroke-linecap="round"><path d="M76 62 C88 72 104 72 116 62"/><path d="M66 76 C84 92 108 92 126 76"/></g><rect x="226" y="60" width="6" height="110" fill="#2b2f36"/><path d="M229 60 L200 48 M229 60 L258 48 M229 60 L229 30" stroke="#2b2f36" stroke-width="3"/><circle cx="200" cy="48" r="8" fill="#e0222e"/><circle cx="258" cy="48" r="8" fill="#e0222e"/><circle cx="229" cy="30" r="8" fill="#e0222e"/><g fill="#7fa7c9"><path d="M262 104 l4 9 a4 4 0 1 1 -8 0z"/><path d="M280 122 l4 9 a4 4 0 1 1 -8 0z"/><path d="M262 140 l4 9 a4 4 0 1 1 -8 0z"/></g>'),
+    drive: svg(ROOF + CURB + '<polygon points="92,101 160,44 167,50 99,104" ' + GLASS + '/><g transform="rotate(-62 140 106)"><rect x="140" y="98" width="46" height="16" rx="3" fill="#41464f"/><rect x="186" y="102" width="26" height="8" fill="#e0222e"/></g><circle cx="140" cy="106" r="4" fill="#2b2f36"/>'),
+    panel: svg('<rect x="104" y="14" width="112" height="156" fill="#2b2f36"/><rect x="112" y="22" width="96" height="140" fill="#41464f"/><rect x="122" y="32" width="76" height="26" fill="#1d2025"/><rect x="128" y="40" width="44" height="3" fill="#8c9199"/><rect x="128" y="47" width="28" height="3" fill="#8c9199"/><circle cx="132" cy="76" r="5" fill="#4cc27a"/><circle cx="148" cy="76" r="5" fill="#e0222e"/><circle cx="164" cy="76" r="5" fill="#8c9199"/><circle cx="160" cy="118" r="20" fill="#e0222e" stroke="#1d2025" stroke-width="3"/><rect x="128" y="148" width="64" height="5" fill="#8c9199"/>'),
+    topHung: svg(FLOW + WALL + sash(180, 40, 224, 132) + '<circle cx="180" cy="40" r="5" fill="#e0222e"/><line x1="180" y1="122" x2="206" y2="100" stroke="#e0222e" stroke-width="3"/>'),
+    bottomHung: svg(FLOW + WALL + sash(180, 140, 224, 48) + '<circle cx="180" cy="140" r="5" fill="#e0222e"/><line x1="180" y1="58" x2="206" y2="76" stroke="#e0222e" stroke-width="3"/>'),
+    pivot: svg(FLOW + WALL + sash(204, 44, 156, 136) + '<circle cx="180" cy="90" r="6" fill="#e0222e"/><path d="M196 70 A26 26 0 0 1 206 92" fill="none" stroke="#e0222e" stroke-width="2.5"/>')
+  });
+  const IDK = { badge: 'Не знаю', caption: 'Подскажем, что подойдёт', art: ART.unknown };
+  const typeCards = {
+    skylight: [
+      { badge: 'Арочные', caption: 'Сводчатая форма, ровный свет', art: ART.arch },
+      { badge: 'Треугольные', caption: 'Двускатная форма', art: ART.gable },
+      { badge: 'Из поликарбоната', caption: 'Лёгкие и прочные', art: ART.poly }, IDK],
+    roof: [
+      { badge: 'Люк на кровлю', caption: 'Для обслуживания кровли', art: ART.roofHatch },
+      { badge: 'Противопожарный', caption: 'С нормируемой огнестойкостью', art: ART.fireHatch },
+      { badge: 'С лестницей', caption: 'Люк сразу вместе с лестницей', art: ART.roof }, IDK],
+    auto: [
+      { badge: 'Щит управления', caption: 'Запуск и контроль системы', art: ART.panel },
+      { badge: 'Приводы', caption: 'Открывают створки', art: ART.drive },
+      { badge: 'Датчики', caption: 'Дым, ветер, осадки', art: ART.sensors },
+      { badge: 'Весь комплект', caption: 'Щит, приводы и датчики', art: ART.auto }],
+    transom: [
+      { badge: 'Верхнеподвесные', caption: 'Ось открывания сверху', art: ART.topHung },
+      { badge: 'Нижнеподвесные', caption: 'Ось открывания снизу', art: ART.bottomHung },
+      { badge: 'Среднеповоротные', caption: 'Поворот вокруг центральной оси', art: ART.pivot }, IDK]
+  };
+  PRODUCTS.forEach(p => { if (typeCards[p.key]) p.typeCards = typeCards[p.key]; });
+
+  // размер проёма: вид сверху с размерами
+  const dims = (w, h, a, b) => {
+    const x = 160 - w / 2, y = 88 - h / 2;
+    return svg(`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#c9d3db" stroke="#2b2f36" stroke-width="3"/><rect x="${x + 7}" y="${y + 7}" width="${w - 14}" height="${h - 14}" fill="none" stroke="#e0222e" stroke-width="2"/><g stroke="#2b2f36" stroke-width="1.5"><path d="M${x} ${y + h + 10}H${x + w}M${x} ${y + h + 5}v10M${x + w} ${y + h + 5}v10M${x + w + 10} ${y}V${y + h}M${x + w + 5} ${y}h10M${x + w + 5} ${y + h}h10"/></g><g font-family="Arial" font-size="13" font-weight="700" fill="#2b2f36"><text x="160" y="${y + h + 26}" text-anchor="middle">${a}</text><text x="${x + w + 16}" y="${y + h / 2 + 5}">${b}</text></g>`);
+  };
+  ART.size1 = dims(84, 84, '1000', '1000');
+  ART.size2 = dims(120, 80, '1500', '1000');
+  ART.size3 = dims(150, 112, '2000', '1500');
+  ART.sizeOwn = svg('<rect x="60" y="64" width="200" height="40" rx="4" fill="#f4c542" stroke="#2b2f36" stroke-width="2"/><g stroke="#2b2f36" stroke-width="2"><path d="M80 64v14M100 64v8M120 64v14M140 64v8M160 64v14M180 64v8M200 64v14M220 64v8M240 64v14"/></g><circle cx="160" cy="138" r="22" fill="#e0222e"/><text x="160" y="147" text-anchor="middle" font-family="Arial" font-weight="700" font-size="26" fill="#fff">?</text>');
+
+  // сроки: секундомер и календари
+  const cal = (x, y, txt, sub) => `<rect x="${x}" y="${y}" width="96" height="104" rx="8" fill="#fff" stroke="#2b2f36" stroke-width="2.5"/><rect x="${x}" y="${y}" width="96" height="26" rx="8" fill="#e0222e"/><rect x="${x}" y="${y + 16}" width="96" height="10" fill="#e0222e"/><rect x="${x + 22}" y="${y - 8}" width="6" height="16" rx="3" fill="#2b2f36"/><rect x="${x + 68}" y="${y - 8}" width="6" height="16" rx="3" fill="#2b2f36"/><text x="${x + 48}" y="${y + 74}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${txt.length > 2 ? 26 : 34}" fill="#2b2f36">${txt}</text><text x="${x + 48}" y="${y + 94}" text-anchor="middle" font-family="Arial" font-size="12" fill="#6b7078">${sub}</text>`;
+  ART.asap = svg('<g stroke="#e0222e" stroke-width="4" stroke-linecap="round"><path d="M70 74h40M58 92h44M70 110h36"/></g><circle cx="180" cy="94" r="50" fill="#fff" stroke="#2b2f36" stroke-width="4"/><rect x="172" y="30" width="16" height="12" rx="2" fill="#2b2f36"/><path d="M180 94 L180 62 M180 94 L204 106" stroke="#e0222e" stroke-width="5" stroke-linecap="round"/><circle cx="180" cy="94" r="5" fill="#2b2f36"/>');
+  ART.month = svg(cal(112, 42, '1', 'месяц'));
+  ART.months = svg('<g opacity=".5">' + cal(72, 30, '', '') + '</g><g opacity=".75">' + cal(92, 40, '', '') + '</g>' + cal(112, 50, '2–3', 'месяца'));
+  ART.ownTime = svg(cal(96, 42, '?', 'ваш срок') + '<g transform="rotate(35 230 90)"><rect x="210" y="40" width="16" height="90" rx="2" fill="#e0222e"/><polygon points="210,130 226,130 218,148" fill="#f1d6b8"/><polygon points="215,141 221,141 218,148" fill="#2b2f36"/></g>');
+
+  const product = () => PRODUCTS.find(p => p.value === answers.product);
+
+  // вопросы. show: когда показывать, other: свой ответ текстом, upload: можно приложить файл
+  const STEPS = [
+    { key: 'product', title: 'Что будем считать?', options: () => PRODUCTS.map(p => p.value), cards: () => PRODUCTS },
+    { key: 'type', show: () => product() && product().types, title: () => product().typeTitle,
+      options: () => product().types, cards: () => product().typeCards },
+    { key: 'size', show: () => product() && product().size, title: 'Какой размер проёма?', hint: 'Ширина × длина. Если не уверены, выберите ближайший', other: 'другой размер',
+      options: () => ['1000×1000 мм', '1000×1500 мм', '1500×2000 мм', 'другой размер'],
+      cards: () => [
+        { badge: '1000×1000', caption: 'Квадратный проём, метр на метр', art: ART.size1 },
+        { badge: '1000×1500', caption: 'Прямоугольный проём', art: ART.size2 },
+        { badge: '1500×2000', caption: 'Большой проём', art: ART.size3 },
+        { badge: 'Другой', caption: 'Впишете свой размер', art: ART.sizeOwn }
+      ] },
+    { key: 'auto', show: () => product() && product().auto, title: 'Автоматику тоже считаем?',
+      options: () => ['да, щит и приводы', 'нет, без автоматики', 'пока не решили'],
+      cards: () => [
+        { badge: 'Щит и приводы', caption: 'Откроются сами по сигналу пожарной', art: ART.auto },
+        { badge: 'Без автоматики', caption: 'Автоматика уже есть или не нужна', art: ART.closed },
+        { badge: 'Пока не решили', caption: 'Посчитаем с ней и без неё', art: ART.maybe }
+      ] },
+    { key: 'projectFile', show: () => product() && product().key === 'byProject', title: 'Прикрепите проект', fileOnly: true,
+      hint: 'PDF, DWG, DXF или архив. Если файла сейчас нет под рукой, пришлёте потом на почту' },
+    { key: 'time', title: 'Когда это нужно на объекте?', other: 'свой срок',
+      options: () => ['как можно скорее', 'в течение месяца', 'через 2–3 месяца', 'свой срок'],
+      cards: () => [
+        { badge: 'Срочно', caption: 'Как можно скорее', art: ART.asap },
+        { badge: 'В течение месяца', caption: 'Есть немного времени', art: ART.month },
+        { badge: 'Через 2–3 месяца', caption: 'Планируем заранее', art: ART.months },
+        { badge: 'Свой срок', caption: 'Напишете, к какой дате', art: ART.ownTime }
+      ] },
+    { key: 'project', show: () => product() && product().key !== 'byProject', title: 'Есть проект или ТЗ?', hint: 'С ним посчитаем точнее, но и без него справимся', upload: 'есть, прикреплю',
+      options: () => ['есть, прикреплю', 'нет, считайте по ответам'],
+      cards: () => [
+        { badge: 'Есть проект', caption: 'Прикрепите файл, посчитаем точнее', art: ART.project },
+        { badge: 'Проекта нет', caption: 'Посчитаем по вашим ответам', art: ART.form }
+      ] }
+  ];
+  const flow = () => STEPS.filter(s => !s.show || s.show());
+  const titleOf = s => typeof s.title === 'function' ? s.title() : s.title;
+  // =============================================
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function renderBonuses(open = false) {
+    document.querySelectorAll('[data-bonuses]').forEach(el => { el.innerHTML = bonusHTML(open); });
+  }
+  renderBonuses();
+
+  // ---------- Видео ----------
+  const mediaBox = $('mediaBox'), video = $('video');
+  video.addEventListener('error', () => mediaBox.classList.add('empty'));
+  if (video.error || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) mediaBox.classList.add('empty');
+  const ICON_MUTED = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.59 3L19 9.59 17.59 8.17 15.17 10.6 12.76 8.17 11.34 9.59 13.76 12l-2.42 2.41 1.42 1.42 2.41-2.42 2.42 2.42L19 14.41z"/>';
+  const ICON_SOUND = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.05A4.47 4.47 0 0016.5 12zM14 3.23v2.06a7 7 0 010 13.42v2.06A9 9 0 0014 3.23z"/>';
+  $('mute').addEventListener('click', () => {
+    video.muted = !video.muted;
+    $('muteIcon').innerHTML = video.muted ? ICON_MUTED : ICON_SOUND;
+    $('mute').setAttribute('aria-label', video.muted ? 'Включить звук' : 'Выключить звук');
+  });
+
+  // ---------- Состояние ----------
+  let answers, other, file, history, index, autoTimer, redirectTimer, busy = false;
+  function reset() {
+    answers = {}; other = {}; file = null; history = []; index = 0;
+  }
+  reset();
+
+  // ---------- Старт → квиз ----------
+  $('startBtn').addEventListener('click', () => {
+    const start = $('start');
+    if (window.matchMedia('(max-width: 818px)').matches) { openQuiz(); return; }
+    start.classList.add('leaving');
+    setTimeout(openQuiz, 750);
+  });
+  function openQuiz() {
+    $('start').hidden = true;
+    $('start').classList.remove('leaving'); // убираем и шторку перехода
+    $('quiz').hidden = false;
+    $('nav').hidden = false;
+    render(false);
+    window.scrollTo(0, 0);
+  }
+  function backToStart() {
+    clearInterval(redirectTimer);
+    reset();
+    renderBonuses(false);
+    $('quiz').hidden = true;
+    const start = $('start');
+    start.classList.remove('leaving');
+    start.hidden = false;
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- Шаги ----------
+  const isForm = () => index === flow().length;
+  function stepValid() {
+    if (isForm()) return true;
+    const s = flow()[index], v = answers[s.key];
+    if (s.fileOnly) return true;
+    if (!v) return false;
+    if (s.other && v === s.other) return (other[s.key] || '').trim().length > 0;
+    return true;
+  }
+  function setProgress() {
+    const pct = Math.round(index / flow().length * 100);
+    $('pct').textContent = pct + '%';
+    $('ring').style.strokeDashoffset = 75.4 * (1 - pct / 100);
+  }
+  function setNav() {
+    $('nextText').textContent = 'Далее';
+    $('next').disabled = !stepValid();
+  }
+
+  // смена вопроса: старый уезжает влево, новый приезжает справа
+  function render(animate = true) {
+    const wrap = $('wrap');
+    const draw = () => {
+      wrap.innerHTML = isForm() ? formHTML() : questionHTML(flow()[index]);
+      bindStep();
+      setNav();
+      setProgress();
+      wrap.classList.remove('out');
+      wrap.classList.add('pre');
+      void wrap.offsetWidth;
+      setTimeout(() => {
+        wrap.classList.remove('pre');
+        wrap.querySelectorAll('.variant').forEach((v, i) => { v.style.transitionDelay = (i * 30) + 'ms'; });
+        setTimeout(() => wrap.querySelectorAll('.variant').forEach(v => { v.style.transitionDelay = ''; }), 400);
+        busy = false;
+      }, animate ? 200 : 0);
+    };
+    if (!animate) { draw(); return; }
+    busy = true;
+    wrap.classList.add('out');
+    setTimeout(draw, 190);
+  }
+
+  function questionHTML(s) {
+    const v = answers[s.key];
+    return `
+      <h2 class="q-title">${esc(titleOf(s))}</h2>
+      ${s.hint ? `<p class="q-sub">${esc(s.hint)}</p>` : ''}
+      ${s.fileOnly ? uploadHTML() : ''}
+      ${s.fileOnly ? '' : s.cards && s.cards() ? `<div class="cards">${s.options().map((o, i) => {
+        const c = s.cards()[i];
+        return `
+        <div class="variant card ${v === o ? 'checked' : ''}">
+          <label class="card-in"><input type="radio" name="${s.key}" value="${esc(o)}" ${v === o ? 'checked' : ''}>
+            <span class="card-img">${c.img ? `<img src="${c.img}" alt="">` : c.art}<span class="card-badge">${c.badge}</span><span class="card-tick"></span></span>
+            <span class="card-cap">${c.caption}</span>
+          </label>
+        </div>`;
+      }).join('')}</div>` : `<div class="variants">${s.options().map(o => `
+        <div class="variant ${v === o ? 'checked' : ''}">
+          <label class="choice"><input type="radio" name="${s.key}" value="${esc(o)}" ${v === o ? 'checked' : ''}><span class="check"></span><span class="choice-label">${esc(o)}</span></label>
+        </div>`).join('')}</div>`}
+      ${s.other && v === s.other ? `<div class="other"><input class="field-input" id="otherInput" placeholder="Например, 1200×1800 или «к марту»" value="${esc(other[s.key] || '')}"></div>` : ''}
+      ${s.upload && v === s.upload ? uploadHTML() : ''}`;
+  }
+
+  function uploadHTML() {
+    return `<label class="upload" id="upload">
+      <input type="file" id="fileInput" accept=".pdf,.dwg,.dxf,.zip,.rar,.7z,.jpg,.jpeg,.png">
+      <span class="ic"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 14V3M5 8l5-5 5 5M3 17h14"/></svg></span>
+      <div><b>${file ? esc(file.name) : 'Прикрепить проект'}</b><small>${file ? (file.size / 1048576).toFixed(2) + ' МБ' : 'PDF, DWG, DXF или архив'}</small></div>
+      ${file ? '<button type="button" class="rm" id="rmFile" aria-label="Убрать файл">×</button>' : ''}
+    </label>`;
+  }
+
+  function formHTML() {
+    return `
+      <h2 class="q-title">Куда прислать расчёт?</h2>
+      <p class="q-sub">Скидку и бесплатный расчёт запишем на вас</p>
+      <form class="lead" id="lead" novalidate>
+        <div data-f="fio"><input class="field-input" name="fio" autocomplete="name" placeholder="Фамилия и имя *"><div class="err">Напишите фамилию и имя</div></div>
+        <div data-f="phone"><input class="field-input" name="phone" type="tel" autocomplete="tel" placeholder="Телефон *"><div class="err">В номере не хватает цифр</div></div>
+        <div data-f="email"><input class="field-input" name="email" type="email" autocomplete="email" placeholder="Почта *"><div class="err">Похоже, в почте опечатка</div></div>
+        <input class="trap" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <label class="consent" id="consent"><input type="checkbox" name="agree"><span class="box"></span>Согласен на обработку персональных данных</label>
+        <button class="q-btn lead-submit" type="submit">Отправить</button>
+      </form>`;
+  }
+
+  function bindStep() {
+    if (isForm()) {
+      const f = $('lead');
+      $('nav').querySelector('.nav-next-wrap').hidden = true;
+      f.phone.addEventListener('input', e => { e.target.value = maskPhone(e.target.value); });
+      ['fio', 'phone', 'email'].forEach(n => f[n].addEventListener('input', () => {
+        if (RULES[n](f[n].value)) f.querySelector(`[data-f="${n}"]`).classList.remove('invalid');
+      }));
+      f.agree.addEventListener('change', () => $('consent').classList.remove('invalid'));
+      f.addEventListener('submit', e => { e.preventDefault(); submit(); });
+      return;
+    }
+    $('nav').querySelector('.nav-next-wrap').hidden = false;
+    const s = flow()[index];
+    $('wrap').querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', () => choose(s, r.value)));
+    if ($('otherInput')) {
+      $('otherInput').addEventListener('input', e => { other[s.key] = e.target.value; setNav(); });
+      setTimeout(() => $('otherInput') && $('otherInput').focus(), 220);
+    }
+    if ($('upload')) {
+      const up = $('upload'), input = $('fileInput');
+      const set = f => { file = f || null; $('wrap').querySelector('.upload').outerHTML = uploadHTML(); bindStep(); };
+      input.addEventListener('change', () => set(input.files[0]));
+      if ($('rmFile')) $('rmFile').addEventListener('click', e => { e.preventDefault(); set(null); });
+      ['dragenter', 'dragover'].forEach(t => up.addEventListener(t, e => { e.preventDefault(); up.classList.add('over'); }));
+      ['dragleave', 'drop'].forEach(t => up.addEventListener(t, e => { e.preventDefault(); up.classList.remove('over'); }));
+      up.addEventListener('drop', e => { if (e.dataTransfer.files[0]) set(e.dataTransfer.files[0]); });
+    }
+  }
+
+  // выбрали ответ: подсветили и через 450мс дальше
+  function choose(s, value) {
+    // сменили продукт: остальные ответы больше не подходят
+    if (s.key === 'product' && answers.product !== value) { answers = {}; other = {}; file = null; }
+    answers[s.key] = value;
+    if (s.upload && value !== s.upload) file = null;
+    const needsMore = (s.other && value === s.other) || (s.upload && value === s.upload);
+    $('wrap').querySelectorAll('.variant').forEach(v => v.classList.toggle('checked', v.querySelector('input').value === value));
+    const hasExtra = !!($('otherInput') || $('upload'));
+    if (needsMore !== hasExtra) {
+      // показать/скрыть поле «свой вариант» или загрузку без перелистывания
+      $('wrap').innerHTML = questionHTML(s);
+      bindStep();
+    }
+    setNav();
+    clearTimeout(autoTimer);
+    // если ещё идёт анимация, ждём
+    const go = () => { if (flow()[index] !== s) return; if (busy) autoTimer = setTimeout(go, 60); else next(); };
+    if (!needsMore) autoTimer = setTimeout(go, 450);
+  }
+
+  function next() {
+    if (busy) return;
+    clearTimeout(autoTimer);
+    if (isForm()) return submit();
+    if (!stepValid()) return;
+    history.push(index);
+    index++;
+    render();
+  }
+  function back() {
+    if (busy) return;
+    clearTimeout(autoTimer);
+    if (!history.length) return backToStart();
+    index = history.pop();
+    render();
+  }
+  $('next').addEventListener('click', next);
+  $('back').addEventListener('click', back);
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || $('quiz').hidden || $('nav').hidden) return;
+    if (e.target.tagName === 'BUTTON' || e.target.closest('form')) return;
+    e.preventDefault();
+    next();
+  });
+
+  // ---------- Отправка ----------
+  const RULES = {
+    fio: v => v.trim().split(/\s+/).filter(Boolean).length >= 2,
+    phone: v => v.replace(/\D/g, '').length === 11,
+    email: v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())
+  };
+
+  // TODO: отправка в CRM / на почту / в телеграм
+  async function sendLead(formData) {
+    console.log('Заявка:', Object.fromEntries(formData));
+    // const res = await fetch('/api/lead', { method: 'POST', body: formData });
+    // if (!res.ok) throw new Error('Не удалось отправить');
+  }
+
+  async function submit() {
+    const f = $('lead');
+    let ok = true;
+    Object.entries(RULES).forEach(([n, check]) => {
+      const valid = check(f[n].value);
+      f.querySelector(`[data-f="${n}"]`).classList.toggle('invalid', !valid);
+      if (!valid) ok = false;
+    });
+    $('consent').classList.toggle('invalid', !f.agree.checked);
+    if (!ok || !f.agree.checked) { f.querySelector('.invalid .field-input')?.focus(); return; }
+    if (f.website.value) return; // ловушка для спам-ботов
+
+    const val = s => (s.other && answers[s.key] === s.other) ? other[s.key].trim() : answers[s.key];
+    const lead = { fio: f.fio.value.trim(), phone: f.phone.value, email: f.email.value.trim(), file: file ? file.name : '' };
+    flow().forEach(s => { if (!s.fileOnly) lead[s.key] = val(s) || ''; });
+    const data = new FormData();
+    Object.entries(lead).forEach(([k, v]) => data.append(k, v));
+    if (file) data.append('projectFile', file);
+
+    f.querySelector('.lead-submit').disabled = true;
+    try {
+      await sendLead(data);
+      showDone(lead);
+    } catch (err) {
+      f.querySelector('.lead-submit').disabled = false;
+      alert('Что-то пошло не так, заявка не ушла. Попробуйте ещё раз или позвоните нам.');
+    }
+  }
+
+  function showDone(lead) {
+    $('nav').hidden = true;
+    renderBonuses(true);
+    const rows = [
+      ['ФИО', lead.fio], ['Телефон', lead.phone], ['Почта', lead.email],
+      ['Проект', lead.file ? `прикреплён (${lead.file})` : 'не прикреплён'],
+      ['Что считаем', lead.product], ['Тип', lead.type], ['Размер проёма', lead.size], ['Автоматика', lead.auto], ['Сроки', lead.time]
+    ].filter(([, v]) => v);
+    const wrap = $('wrap');
+    wrap.classList.add('out');
+    setTimeout(() => {
+      wrap.innerHTML = `
+        <div class="done">
+          <div class="done-mark"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l5 5 11-11"/></svg></div>
+          <h2 class="q-title">Спасибо, заявка у нас!</h2>
+          <p class="q-sub" style="margin-top:-8px">Людмила посмотрит ответы и позвонит, если что-то нужно уточнить.</p>
+          <dl class="data">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+          <div class="done-bonus-title">Это теперь ваше:</div>
+          <div class="bonus-row">${bonusHTML(true)}</div>
+          <div class="redirect">Вернём вас на главную через <b id="sec">${REDIRECT_SECONDS}</b> с<div class="bar"><i id="bar"></i></div></div>
+        </div>`;
+      wrap.classList.remove('out'); wrap.classList.add('pre'); void wrap.offsetWidth;
+      setTimeout(() => wrap.classList.remove('pre'), 200);
+      const bar = $('bar'), deadline = Date.now() + REDIRECT_SECONDS * 1000;
+      bar.style.transition = `transform ${REDIRECT_SECONDS}s linear`;
+      requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.transform = 'scaleX(0)'; }));
+      clearInterval(redirectTimer);
+      redirectTimer = setInterval(() => {
+        const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        if ($('sec')) $('sec').textContent = left;
+        if (left === 0) backToStart();
+      }, 250);
+    }, 190);
+  }
+
+  function maskPhone(v) {
+    let d = v.replace(/\D/g, '');
+    if (!d) return '';
+    if (d.startsWith('8')) d = '7' + d.slice(1);
+    if (!d.startsWith('7')) d = '7' + d;
+    d = d.slice(0, 11);
+    let r = '+7';
+    if (d.length > 1) r += ' (' + d.slice(1, 4);
+    if (d.length >= 4) r += ')';
+    if (d.length > 4) r += ' ' + d.slice(4, 7);
+    if (d.length > 7) r += '-' + d.slice(7, 9);
+    if (d.length > 9) r += '-' + d.slice(9, 11);
+    return r;
+  }
+</script>
+</body>
+</html>
