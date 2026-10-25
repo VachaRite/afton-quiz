@@ -129,6 +129,8 @@
   .card-in input { position: absolute; opacity: 0; pointer-events: none; }
   .card-img { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: #eef0f3; }
   .card-img svg, .card-img img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .5s ease; }
+  .card-img img { object-fit: contain; background: #fff; padding: 6px; }
+  .card-img:has(img) { background: #fff; }
   .variant.card:hover .card-img svg, .variant.card:hover .card-img img { transform: scale(1.04); }
   .card-badge { position: absolute; right: 0; bottom: 0; padding: 7px 14px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; line-height: 1.2; }
   .card-tick { position: absolute; top: 10px; left: 10px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .2); display: grid; place-items: center; transform: scale(0); transition: transform .2s ease-out; }
@@ -359,21 +361,21 @@
 
   // продукты на втором экране (порядок = порядок карточек)
   const PRODUCTS = [
-    { key: 'hatch', value: 'люки дымоудаления', badge: 'Люки дымоудаления', caption: 'Одно- и двухстворчатые, взрывоустойчивые', art: ART.double,
+    { key: 'hatch', value: 'люки дымоудаления', badge: 'Люки дымоудаления', img: 'img/hatch.webp', caption: 'Одно- и двухстворчатые, взрывоустойчивые', art: ART.double,
       typeTitle: 'Какие люки нужны?', types: ['одностворчатые', 'двухстворчатые', 'взрывоустойчивые', 'не знаю, подскажите'],
       typeCards: [
-        { badge: 'Одностворчатые', caption: 'Одна створка, проём поменьше', art: ART.single },
-        { badge: 'Двухстворчатые', caption: 'Две створки, большой проём', art: ART.double },
+        { badge: 'Одностворчатые', img: 'img/hatch-single.webp', caption: 'Одна створка, проём поменьше', art: ART.single },
+        { badge: 'Двухстворчатые', img: 'img/hatch-double.webp', caption: 'Две створки, большой проём', art: ART.double },
         { badge: 'Взрывоустойчивые', caption: 'Для взрывоопасных помещений', art: ART.blast },
         { badge: 'Не знаю', caption: 'Подскажем, какие подойдут', art: ART.unknown }
       ], size: true, auto: true },
-    { key: 'skylight', value: 'зенитные фонари', badge: 'Зенитные фонари', caption: 'Свет и проветривание через кровлю', art: ART.skylight,
+    { key: 'skylight', value: 'зенитные фонари', badge: 'Зенитные фонари', img: 'img/skylight-arch.webp', caption: 'Свет и проветривание через кровлю', art: ART.skylight,
       typeTitle: 'Какие фонари нужны?', types: ['арочные', 'треугольные', 'из поликарбоната', 'не знаю, подскажите'], size: true },
-    { key: 'roof', value: 'выход на крышу', badge: 'Выход на крышу', caption: 'Люки и лестницы на кровлю', art: ART.roof,
+    { key: 'roof', value: 'выход на крышу', badge: 'Выход на крышу', img: 'img/roof-hatch.webp', caption: 'Люки и лестницы на кровлю', art: ART.roof,
       typeTitle: 'Какой выход на крышу нужен?', types: ['люк выхода на кровлю', 'противопожарный люк', 'люк с лестницей', 'не знаю, подскажите'], size: true },
-    { key: 'auto', value: 'автоматика дымоудаления', badge: 'Автоматика', caption: 'Щиты, приводы и датчики', art: ART.auto,
+    { key: 'auto', value: 'автоматика дымоудаления', badge: 'Автоматика', img: 'img/auto-panel.webp', caption: 'Щиты, приводы и датчики', art: ART.auto,
       typeTitle: 'Что нужно из автоматики?', types: ['щит управления', 'приводы', 'датчики', 'весь комплект'] },
-    { key: 'transom', value: 'фрамуги дымоудаления', badge: 'Фрамуги дымоудаления', caption: 'Дымоудаление через фасад', art: ART.transom,
+    { key: 'transom', value: 'фрамуги дымоудаления', badge: 'Фрамуги дымоудаления', img: 'img/window-top-hung.webp', caption: 'Дымоудаление через фасад', art: ART.transom,
       typeTitle: 'Какие фрамуги нужны?', types: ['верхнеподвесные', 'нижнеподвесные', 'среднеповоротные', 'не знаю, подскажите'], size: true, auto: true },
     { key: 'byProject', value: 'посчитайте по проекту', badge: 'Посчитайте по проекту', caption: 'Пришлите файл, посчитаем по нему', art: ART.project }
   ];
@@ -400,21 +402,21 @@
   const IDK = { badge: 'Не знаю', caption: 'Подскажем, что подойдёт', art: ART.unknown };
   const typeCards = {
     skylight: [
-      { badge: 'Арочные', caption: 'Сводчатая форма, ровный свет', art: ART.arch },
-      { badge: 'Треугольные', caption: 'Двускатная форма', art: ART.gable },
-      { badge: 'Из поликарбоната', caption: 'Лёгкие и прочные', art: ART.poly }, IDK],
+      { badge: 'Арочные', img: 'img/skylight-arch.webp', caption: 'Сводчатая форма, ровный свет', art: ART.arch },
+      { badge: 'Треугольные', img: 'img/skylight-triangle.webp', caption: 'Двускатная форма', art: ART.gable },
+      { badge: 'Из поликарбоната', img: 'img/skylight-dome.webp', caption: 'Лёгкие и прочные', art: ART.poly }, IDK],
     roof: [
-      { badge: 'Люк на кровлю', caption: 'Для обслуживания кровли', art: ART.roofHatch },
-      { badge: 'Противопожарный', caption: 'С нормируемой огнестойкостью', art: ART.fireHatch },
-      { badge: 'С лестницей', caption: 'Люк сразу вместе с лестницей', art: ART.roof }, IDK],
+      { badge: 'Люк на кровлю', img: 'img/roof-hatch.webp', caption: 'Для обслуживания кровли', art: ART.roofHatch },
+      { badge: 'Противопожарный', img: 'img/roof-smoke-vent.webp', caption: 'Дымовой люк с выходом на кровлю', art: ART.fireHatch },
+      { badge: 'С лестницей', img: 'img/roof-hatch-ladder.webp', caption: 'Люк сразу вместе с лестницей', art: ART.roof }, IDK],
     auto: [
-      { badge: 'Щит управления', caption: 'Запуск и контроль системы', art: ART.panel },
-      { badge: 'Приводы', caption: 'Открывают створки', art: ART.drive },
-      { badge: 'Датчики', caption: 'Дым, ветер, осадки', art: ART.sensors },
-      { badge: 'Весь комплект', caption: 'Щит, приводы и датчики', art: ART.auto }],
+      { badge: 'Щит управления', img: 'img/auto-panel.webp', caption: 'Запуск и контроль системы', art: ART.panel },
+      { badge: 'Приводы', img: 'img/auto-actuators.webp', caption: 'Открывают створки', art: ART.drive },
+      { badge: 'Датчики', img: 'img/auto-sensor.webp', caption: 'Ветер и осадки', art: ART.sensors },
+      { badge: 'Весь комплект', img: 'img/auto-kit.webp', caption: 'Щит, приводы и датчики', art: ART.auto }],
     transom: [
-      { badge: 'Верхнеподвесные', caption: 'Ось открывания сверху', art: ART.topHung },
-      { badge: 'Нижнеподвесные', caption: 'Ось открывания снизу', art: ART.bottomHung },
+      { badge: 'Верхнеподвесные', img: 'img/window-top-hung.webp', caption: 'Ось открывания сверху', art: ART.topHung },
+      { badge: 'Нижнеподвесные', img: 'img/window-bottom-hung.webp', caption: 'Ось открывания снизу', art: ART.bottomHung },
       { badge: 'Среднеповоротные', caption: 'Поворот вокруг центральной оси', art: ART.pivot }, IDK]
   };
   PRODUCTS.forEach(p => { if (typeCards[p.key]) p.typeCards = typeCards[p.key]; });
@@ -454,8 +456,8 @@
     { key: 'auto', show: () => product() && product().auto, title: 'Автоматику тоже считаем?',
       options: () => ['да, щит и приводы', 'нет, без автоматики', 'пока не решили'],
       cards: () => [
-        { badge: 'Щит и приводы', caption: 'Откроются сами по сигналу пожарной', art: ART.auto },
-        { badge: 'Без автоматики', caption: 'Автоматика уже есть или не нужна', art: ART.closed },
+        { badge: 'Щит и приводы', img: 'img/auto-panel.webp', caption: 'Откроются сами по сигналу пожарной', art: ART.auto },
+        { badge: 'Без автоматики', img: 'img/hatch-closed.webp', caption: 'Автоматика уже есть или не нужна', art: ART.closed },
         { badge: 'Пока не решили', caption: 'Посчитаем с ней и без неё', art: ART.maybe }
       ] },
     { key: 'projectFile', show: () => product() && product().key === 'byProject', title: 'Прикрепите проект', fileOnly: true,
