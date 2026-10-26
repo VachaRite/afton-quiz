@@ -159,10 +159,6 @@
   .lead-file .upload { margin-top: 0; }
   /* ---------- опросные листы ---------- */
   .sheet { max-width: 760px; padding-bottom: 8px; }
-  .sheet-org { font-size: 13px; line-height: 1.5; color: var(--text-70); margin-bottom: 10px; }
-  .sheet-org b { color: var(--text); font-weight: 600; }
-  .sheet-org a { color: var(--primary); text-decoration: none; }
-  .sheet-org a:hover { text-decoration: underline; }
   .sheet .q-title { margin-bottom: 18px; }
   .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: #f2f2f2; border-radius: 10px; margin-bottom: 16px; }
   .tab { height: 40px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-70); transition: background .2s, color .2s, box-shadow .2s; }
@@ -549,7 +545,7 @@
       <div class="fs"><span class="fs-label">Контактная информация</span>
         <input class="field-input" name="org" data-label="Организация" placeholder="Название организации" autocomplete="organization">
         <div class="fs-row">
-          <div data-f="fio"><input class="field-input" name="fio" data-label="ФИО" placeholder="Ф. И. О. заявителя${req}" autocomplete="name"><div class="err">Напишите фамилию и${NBSP}имя</div></div>
+          <div data-f="fio"><input class="field-input" name="fio" data-label="ФИО" placeholder="Ф. И. О. заявителя${req}" autocomplete="name"><div class="err">Напишите, как к${NBSP}вам обращаться</div></div>
           <div data-f="phone"><input class="field-input" name="phone" type="tel" data-label="Телефон" placeholder="Контактный телефон/факс${req}" autocomplete="tel"><div class="err">В${NBSP}номере не${NBSP}хватает цифр</div></div>
         </div>
         <div data-f="email" style="margin-top:10px"><input class="field-input" name="email" type="email" data-label="E-mail" placeholder="E-mail${req}" autocomplete="email"><div class="err">Похоже, в${NBSP}почте опечатка</div></div>
@@ -562,7 +558,6 @@
   function sheetHTML(sh) {
     return `
       <div class="sheet" id="sheet">
-        <div class="sheet-org"><b>ООО «АФТОН»</b><br>Заявки на расчёт отправлять по${NBSP}адресу<br>e-mail: <a href="mailto:${SHEET_EMAIL}">${SHEET_EMAIL}</a></div>
         <h2 class="q-title">${sh.title}</h2>
         <div class="tabs" role="tablist">
           <button type="button" class="tab on" data-tab="calc" role="tab">Заявка на${NBSP}расчёт</button>
@@ -571,7 +566,7 @@
         <div class="sheet-card">
           <form id="sheetCalc" data-kind="Заявка на расчёт" novalidate>
             ${sh.fields.map(fieldHTML).join('')}
-            <div class="fs" data-f="objectCity"><span class="fs-label">В${NBSP}каком городе находится объект<small>(куда считаем доставку)</small></span><input class="field-input" name="objectCity" data-label="Город объекта (доставка)" placeholder="Например, Москва" autocomplete="off"><div class="err">Укажите город, где находится объект</div></div>
+            <div class="fs" data-f="objectCity"><span class="fs-label">В${NBSP}каком городе находится объект<small>(куда считаем доставку)</small></span><input class="field-input" name="objectCity" data-label="Город объекта (доставка)" placeholder="Например, Москва" autocomplete="off"></div>
             ${contactsHTML(sh.plain)}
             <button class="q-btn lead-submit" type="submit">Отправить заявку</button>
           </form>
@@ -595,7 +590,6 @@
       ['fio', 'phone', 'email'].forEach(n => f[n].addEventListener('input', () => {
         if (RULES[n](f[n].value)) f.querySelector(`[data-f="${n}"]`).classList.remove('invalid');
       }));
-      if (f.objectCity) f.objectCity.addEventListener('input', () => { if (f.objectCity.value.trim().length > 1) f.querySelector('[data-f="objectCity"]').classList.remove('invalid'); });
       if (f.agree) f.agree.addEventListener('change', () => f.querySelector('.consent').classList.remove('invalid'));
       f.addEventListener('submit', e => { e.preventDefault(); submitSheet(f); });
     });
@@ -607,11 +601,6 @@
       f.querySelector(`[data-f="${n}"]`).classList.toggle('invalid', !valid);
       if (!valid) ok = false;
     });
-    if (f.objectCity) {
-      const cityOk = f.objectCity.value.trim().length > 1;
-      f.querySelector('[data-f="objectCity"]').classList.toggle('invalid', !cityOk);
-      if (!cityOk) ok = false;
-    }
     const agreed = !f.agree || f.agree.checked;
     if (f.agree) f.querySelector('.consent').classList.toggle('invalid', !agreed);
     if (!ok || !agreed) { f.querySelector('.invalid .field-input')?.focus(); return; }
@@ -844,7 +833,7 @@
       <p class="q-sub">${direct ? 'Прикрепите файл и оставьте контакты. Скидку и каталог тоже пришлём' : 'Скидку и бесплатный расчёт запишем на вас'}</p>
       ${byProject && direct ? `<div class="lead-file">${uploadHTML()}</div>` : ''}
       <form class="lead" id="lead" novalidate>
-        <div data-f="fio"><input class="field-input" name="fio" autocomplete="name" placeholder="Фамилия и имя *"><div class="err">Напишите фамилию и имя</div></div>
+        <div data-f="fio"><input class="field-input" name="fio" autocomplete="name" placeholder="Имя *"><div class="err">Напишите, как к вам обращаться</div></div>
         <div data-f="phone"><input class="field-input" name="phone" type="tel" autocomplete="tel" placeholder="Телефон *"><div class="err">В номере не хватает цифр</div></div>
         <div data-f="email"><input class="field-input" name="email" type="email" autocomplete="email" placeholder="Почта *"><div class="err">Похоже, в почте опечатка</div></div>
         <input class="trap" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -937,7 +926,7 @@
 
   // ---------- Отправка ----------
   const RULES = {
-    fio: v => v.trim().split(/\s+/).filter(Boolean).length >= 2,
+    fio: v => v.trim().length >= 2,
     phone: v => v.replace(/\D/g, '').length === 11,
     email: v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())
   };
