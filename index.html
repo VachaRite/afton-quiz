@@ -157,6 +157,39 @@
   .other { margin-top: 16px; }
   .lead-file { max-width: 420px; margin-bottom: 12px; }
   .lead-file .upload { margin-top: 0; }
+  /* ---------- опросные листы ---------- */
+  .sheet { max-width: 760px; padding-bottom: 8px; }
+  .sheet-org { font-size: 13px; line-height: 1.5; color: var(--text-70); margin-bottom: 10px; }
+  .sheet-org b { color: var(--text); font-weight: 600; }
+  .sheet-org a { color: var(--primary); text-decoration: none; }
+  .sheet-org a:hover { text-decoration: underline; }
+  .sheet .q-title { margin-bottom: 18px; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: #f2f2f2; border-radius: 10px; margin-bottom: 16px; }
+  .tab { height: 40px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-70); transition: background .2s, color .2s, box-shadow .2s; }
+  .tab:hover { color: var(--text); }
+  .tab.on { background: #fff; color: var(--text); box-shadow: 0 1px 4px rgba(0, 0, 0, .1); }
+  .sheet-card { border: 1px solid #ececec; border-radius: 12px; padding: 22px 22px 24px; background: #fff; box-shadow: 0 2px 12px -8px rgba(0, 0, 0, .15); }
+  .fs { margin-bottom: 20px; }
+  .fs-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .fs-label small { font-weight: 400; color: var(--text-70); margin-left: 6px; }
+  .fs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fs > .field-input + .fs-row, .fs-row + .fs-row { margin-top: 10px; }
+  .sheet .field-input { height: 44px; border-color: #e3e3e3; border-radius: 8px; }
+  .sheet .field-input.short { max-width: 180px; }
+  .sheet textarea.field-input { height: 76px; padding: 12px 16px; resize: vertical; font: inherit; }
+  .opts-col { display: flex; flex-direction: column; gap: 8px; }
+  .opt-tile { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid #e3e3e3; border-radius: 8px; cursor: pointer; font-size: 14px; transition: border-color .15s, background .15s; }
+  .opt-tile:hover { border-color: #c9c9c9; }
+  .opt-tile input { width: 16px; height: 16px; margin: 0; accent-color: var(--primary); flex: none; }
+  .opt-tile:has(input:checked) { border-color: var(--primary); background: #fff7f7; }
+  .opt-tile.flag { font-weight: 600; }
+  .sheet .err { display: none; color: var(--error); font-size: 12px; margin-top: 4px; }
+  .sheet .invalid .field-input { border-color: var(--error); }
+  .sheet .invalid > .err { display: block; }
+  .sheet .lead-submit { width: 100%; height: 50px; font-size: 16px; font-weight: 600; margin-top: 4px; }
+  .sheet .consent { margin: 4px 0 14px; }
+  @media (max-width: 560px) { .fs-row { grid-template-columns: 1fr; } .sheet-card { padding: 16px; } }
+
   .field-input { width: 100%; height: 52px; padding: 0 16px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; color: var(--text); transition: border-color .15s, box-shadow .15s; }
   .field-input::placeholder { color: rgba(29, 29, 31, .4); }
   .field-input:focus { outline: none; border-color: var(--primary-50); box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12); }
@@ -456,6 +489,146 @@
   ART.ownTime = svg(cal(96, 42, '?', 'ваш срок') + '<g transform="rotate(35 230 90)"><rect x="210" y="40" width="16" height="90" rx="2" fill="#e0222e"/><polygon points="210,130 226,130 218,148" fill="#f1d6b8"/><polygon points="215,141 221,141 218,148" fill="#2b2f36"/></g>');
 
   const product = () => PRODUCTS.find(p => p.value === answers.product);
+  const NBSP = '\u00a0';
+  // ---------- опросные листы (фрамуги, зенитные фонари, выход на кровлю) ----------
+  const SHEET_EMAIL = 'info@afton.ru';
+  const SHEETS = {
+    transom: { title: 'Заявка на расчёт фрамуг дымоудаления', fields: [
+      { t: 'num', name: 'qty', label: 'Количество фрамуг', ph: 'шт.' },
+      { t: 'dims', label: 'Габариты фрамуги', unit: 'мм' },
+      { t: 'radio', name: 'opening', label: 'Способ открывания', options: ['Верхнеподвесная', 'Нижнеподвесная'] },
+      { t: 'radio', name: 'filling', label: 'Параметры заполнения', options: ['Глухое', 'Однокамерный стеклопакет'] },
+      { t: 'check', name: 'purpose', label: 'Назначение', hint: 'можно выбрать несколько', options: ['Дымоудаление', 'Вентиляция', 'Компенсация воздуха при дымоудалении'] }
+    ] },
+    roof: { title: 'Заявка на расчёт люков выхода на кровлю', fields: [
+      { t: 'num', name: 'qty', label: 'Количество люков', ph: 'шт.' },
+      { t: 'dims', label: 'Габариты люка', unit: 'мм' },
+      { t: 'num', name: 'base', label: 'Высота основания (мм)', ph: 'мм' },
+      { t: 'radio', name: 'filling', label: 'Параметры заполнения (купола)', options: ['Сэндвич-панель (для огнестойких люков EI-60)', 'Поликарбонат 16 мм', 'Поликарбонат 20 мм'] },
+      { t: 'radio', name: 'opacity', label: 'Прозрачность купола', options: ['Непрозрачный', 'Молочный', 'Прозрачный'] },
+      { t: 'radio', name: 'purpose', label: 'Назначение', options: ['Огнестойкий люк для выхода на кровлю EI30, EI60', 'Светопрозрачный люк для выхода на крышу'] }
+    ] },
+    skylight: { title: 'Заявка на расчёт зенитных фонарей', fields: [
+      { t: 'radio', name: 'construction', label: 'Тип конструкции', options: ['Арочные зенитные фонари', 'Зенитный фонарь с треугольным сводом', 'Точечный зенитный фонарь'] },
+      { t: 'num', name: 'qty', label: 'Количество зенитных фонарей', ph: 'шт.' },
+      { t: 'dims', label: 'Габариты зенитных фонарей', unit: 'мм' },
+      { t: 'num', name: 'base', label: 'Высота основания (мм)', ph: 'мм' },
+      { t: 'radio', name: 'filling', label: 'Параметры заполнения (купола)', options: ['Стеклопакет безопасный', 'Поликарбонат 16 мм', 'Поликарбонат 20 мм'] },
+      { t: 'flag', name: 'hatches', label: 'Нужны люки, встроенные в фонарь' }
+    ] }
+  };
+  // документы для вкладки «Запрос документации»
+  const DOCS = ['Сертификаты соответствия', 'Технический паспорт изделия', 'Чертежи и узлы монтажа', 'Каталог продукции'];
+  PRODUCTS.forEach(p => { if (SHEETS[p.key]) p.sheet = SHEETS[p.key]; });
+
+  function fieldHTML(f) {
+    const L = (txt, hint) => `<span class="fs-label">${txt}${hint ? `<small>(${hint})</small>` : ''}</span>`;
+    if (f.t === 'num') return `<div class="fs">${L(f.label)}<input class="field-input short" type="number" min="0" inputmode="numeric" name="${f.name}" data-label="${f.label}" placeholder="${f.ph}"></div>`;
+    if (f.t === 'dims') return `<div class="fs">${L(f.label, f.unit)}<div class="fs-row">
+        <input class="field-input" type="number" min="0" inputmode="numeric" name="length" data-label="Длина, мм" placeholder="Длина (мм)">
+        <input class="field-input" type="number" min="0" inputmode="numeric" name="width" data-label="Ширина, мм" placeholder="Ширина (мм)"></div></div>`;
+    if (f.t === 'radio' || f.t === 'check') return `<div class="fs">${L(f.label, f.hint)}<div class="opts-col">${f.options.map(o =>
+        `<label class="opt-tile"><input type="${f.t === 'radio' ? 'radio' : 'checkbox'}" name="${f.name}" value="${esc(o)}" data-label="${f.label}">${esc(o)}</label>`).join('')}</div></div>`;
+    if (f.t === 'flag') return `<div class="fs"><label class="opt-tile flag"><input type="checkbox" name="${f.name}" value="да" data-label="${f.label}">${f.label}</label></div>`;
+    return '';
+  }
+  function contactsHTML() {
+    return `
+      <div class="fs"><span class="fs-label">Контактная информация</span>
+        <input class="field-input" name="org" data-label="Организация" placeholder="Название организации" autocomplete="organization">
+        <div class="fs-row">
+          <input class="field-input" name="city" data-label="Город" placeholder="Город" autocomplete="address-level2">
+          <div data-f="fio"><input class="field-input" name="fio" data-label="ФИО" placeholder="Ф. И. О. заявителя *" autocomplete="name"><div class="err">Напишите фамилию и${NBSP}имя</div></div>
+        </div>
+        <div class="fs-row">
+          <input class="field-input" name="position" data-label="Должность" placeholder="Должность" autocomplete="organization-title">
+          <div data-f="phone"><input class="field-input" name="phone" type="tel" data-label="Телефон" placeholder="Контактный телефон/факс *" autocomplete="tel"><div class="err">В${NBSP}номере не${NBSP}хватает цифр</div></div>
+        </div>
+        <div data-f="email" style="margin-top:10px"><input class="field-input" name="email" type="email" data-label="E-mail" placeholder="E-mail *" autocomplete="email"><div class="err">Похоже, в${NBSP}почте опечатка</div></div>
+      </div>
+      <div class="fs"><span class="fs-label">Дополнительная информация</span>
+        <textarea class="field-input" name="comment" data-label="Комментарий" placeholder="Любые дополнительные пожелания или комментарии"></textarea></div>
+      <input class="trap" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label class="consent"><input type="checkbox" name="agree"><span class="box"></span>Согласен на${NBSP}обработку персональных данных</label>`;
+  }
+  function sheetHTML(sh) {
+    return `
+      <div class="sheet" id="sheet">
+        <div class="sheet-org"><b>ООО «АФТОН»</b><br>Заявки на расчёт отправлять по${NBSP}адресу<br>e-mail: <a href="mailto:${SHEET_EMAIL}">${SHEET_EMAIL}</a></div>
+        <h2 class="q-title">${sh.title}</h2>
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab on" data-tab="calc" role="tab">Заявка на${NBSP}расчёт</button>
+          <button type="button" class="tab" data-tab="docs" role="tab">Запрос документации</button>
+        </div>
+        <div class="sheet-card">
+          <form id="sheetCalc" data-kind="Заявка на расчёт" novalidate>
+            ${sh.fields.map(fieldHTML).join('')}
+            ${contactsHTML()}
+            <button class="q-btn lead-submit" type="submit">Отправить заявку</button>
+          </form>
+          <form id="sheetDocs" data-kind="Запрос документации" novalidate hidden>
+            ${fieldHTML({ t: 'check', name: 'docs', label: 'Какие документы нужны', hint: 'можно выбрать несколько', options: DOCS })}
+            ${contactsHTML()}
+            <button class="q-btn lead-submit" type="submit">Запросить документацию</button>
+          </form>
+        </div>
+      </div>`;
+  }
+  function bindSheet() {
+    document.querySelectorAll('#sheet .tab').forEach(t => t.addEventListener('click', () => {
+      document.querySelectorAll('#sheet .tab').forEach(x => x.classList.toggle('on', x === t));
+      $('sheetCalc').hidden = t.dataset.tab !== 'calc';
+      $('sheetDocs').hidden = t.dataset.tab !== 'docs';
+    }));
+    ['sheetCalc', 'sheetDocs'].forEach(id => {
+      const f = $(id);
+      f.phone.addEventListener('input', e => { e.target.value = maskPhone(e.target.value); });
+      ['fio', 'phone', 'email'].forEach(n => f[n].addEventListener('input', () => {
+        if (RULES[n](f[n].value)) f.querySelector(`[data-f="${n}"]`).classList.remove('invalid');
+      }));
+      f.agree.addEventListener('change', () => f.querySelector('.consent').classList.remove('invalid'));
+      f.addEventListener('submit', e => { e.preventDefault(); submitSheet(f); });
+    });
+  }
+  async function submitSheet(f) {
+    let ok = true;
+    Object.entries(RULES).forEach(([n, check]) => {
+      const valid = check(f[n].value);
+      f.querySelector(`[data-f="${n}"]`).classList.toggle('invalid', !valid);
+      if (!valid) ok = false;
+    });
+    f.querySelector('.consent').classList.toggle('invalid', !f.agree.checked);
+    if (!ok || !f.agree.checked) { f.querySelector('.invalid .field-input')?.focus(); return; }
+    if (f.website.value) return; // ловушка для спам-ботов
+
+    // собираем заполненные поля по порядку, как в листе
+    const rows = [], seen = {};
+    f.querySelectorAll('[data-label]').forEach(el => {
+      const label = el.dataset.label;
+      let v = '';
+      if (el.type === 'radio' || el.type === 'checkbox') { if (!el.checked) return; v = el.value; }
+      else v = el.value.trim();
+      if (!v) return;
+      if (seen[label] !== undefined) rows[seen[label]][1] += ', ' + v;
+      else { seen[label] = rows.length; rows.push([label, v]); }
+    });
+    const kind = f.dataset.kind, title = product().sheet.title;
+    const data = new FormData();
+    data.append('request', kind);
+    data.append('sheet', title);
+    rows.forEach(([k, v]) => data.append(k, v));
+
+    const btn = f.querySelector('.lead-submit');
+    btn.disabled = true;
+    try {
+      await sendLead(data);
+      showDone(null, [['Заявка', kind === 'Запрос документации' ? `${kind}: ${product().badge.toLowerCase()}` : title], ...rows]);
+    } catch (err) {
+      btn.disabled = false;
+      alert('Что-то пошло не так, заявка не ушла. Попробуйте ещё раз или напишите нам на ' + SHEET_EMAIL);
+    }
+  }
+
 
   // вопросы. show: когда показывать, other: свой ответ текстом, upload: можно приложить файл
   const STEPS = [
@@ -494,7 +667,7 @@
         { badge: 'Проекта нет', caption: 'Посчитаем по вашим ответам', art: ART.form }
       ] }
   ];
-  const flow = () => STEPS.filter(s => !s.show || s.show());
+  const flow = () => (product() && product().sheet) ? [STEPS[0]] : STEPS.filter(s => !s.show || s.show());
   const titleOf = s => typeof s.title === 'function' ? s.title() : s.title;
   // =============================================
 
@@ -648,6 +821,7 @@
   }
 
   function formHTML() {
+    if (!direct && product() && product().sheet) return sheetHTML(product().sheet);
     const byProject = direct || (product() && product().key === 'byProject');
     return `
       <h2 class="q-title">${direct ? 'Пришлите проект, посчитаем по нему' : 'Куда прислать расчёт?'}</h2>
@@ -665,8 +839,9 @@
 
   function bindStep() {
     if (isForm()) {
-      const f = $('lead');
       $('nav').querySelector('.nav-next-wrap').hidden = true;
+      if ($('sheet')) { bindSheet(); return; }
+      const f = $('lead');
       f.phone.addEventListener('input', e => { e.target.value = maskPhone(e.target.value); });
       ['fio', 'phone', 'email'].forEach(n => f[n].addEventListener('input', () => {
         if (RULES[n](f[n].value)) f.querySelector(`[data-f="${n}"]`).classList.remove('invalid');
@@ -787,10 +962,10 @@
     }
   }
 
-  function showDone(lead) {
+  function showDone(lead, customRows) {
     $('nav').hidden = true;
     renderBonuses(true);
-    const rows = [
+    const rows = customRows || [
       ['ФИО', lead.fio], ['Телефон', lead.phone], ['Почта', lead.email],
       ['Проект', lead.file ? `прикреплён (${lead.file})` : 'не прикреплён'],
       ['Что считаем', lead.product], ['Тип', lead.type], ['Размер проёма', lead.size], ['Автоматика', lead.auto], ['Сроки', lead.time]
