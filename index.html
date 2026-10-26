@@ -62,7 +62,7 @@
   .media-box.empty .media-ph { display: flex; }
   .mute { position: absolute; left: 16px; bottom: 16px; width: 40px; height: 40px; display: grid; place-items: center; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
   .mute svg { width: 30px; height: 30px; }
-  .media-box.empty .mute { display: none; }
+  .mute { display: none; }  /* в ролике нет звука — кнопка скрыта */
 
   .start-panel { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .start-head { padding: 12px 32px; border-bottom: 1px solid var(--line); font-size: 14px; font-weight: 500; line-height: 1.25; }
@@ -311,7 +311,7 @@
   <div class="start-media">
     <!-- Видео: положите video.mp4 рядом с index.html -->
     <div class="media-box" id="mediaBox">
-      <video id="video" src="video.mp4" autoplay muted loop playsinline></video>
+      <video id="video" src="video.mp4" poster="poster.jpg" autoplay muted loop playsinline></video>
       <div class="media-ph">
         <svg viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="36" cy="36" r="34"/><path d="M29 24v24l20-12z" fill="currentColor" stroke="none"/></svg>
         Здесь будет видео
