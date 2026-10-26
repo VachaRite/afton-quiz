@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Спасибо, заявка у нас | Афтон</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --line: #e3e3e3;
+    --primary: #e0222e;
+    --primary-50: rgba(224, 34, 46, .5);
+    --text: #1d1d1f;
+    --text-70: rgba(29, 29, 31, .65);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--text); font-family: "Onest", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+
+  .head { display: flex; align-items: center; gap: 24px; padding: 12px 72px; border-bottom: 1px solid var(--line); }
+  .head img { display: block; height: 52px; width: auto; }
+
+  .page { flex: 1; display: flex; justify-content: center; padding: 48px 24px 40px; background: linear-gradient(180deg, #fff6f6 0%, #fff 320px); }
+  .card { width: 100%; max-width: 620px; animation: rise .6s cubic-bezier(.2, .7, .2, 1) both; }
+
+  .mark { width: 64px; height: 64px; border-radius: 50%; background: var(--primary); color: #fff; display: grid; place-items: center; margin-bottom: 18px; box-shadow: 0 8px 22px -10px rgba(224, 34, 46, .7); animation: pop .5s .1s ease-out both; }
+  .mark svg { width: 30px; height: 30px; }
+  .mark path { stroke-dasharray: 30; stroke-dashoffset: 30; animation: draw .5s .4s ease-out forwards; }
+  h1 { font-size: 32px; line-height: 1.2; font-weight: 700; margin-bottom: 8px; }
+  .lead { color: var(--text-70); margin-bottom: 24px; }
+
+  .data { border-top: 1px solid var(--line); margin-bottom: 26px; }
+  .data div { display: grid; grid-template-columns: 200px 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .data dt { color: var(--text-70); }
+  .data dd { font-weight: 500; word-break: break-word; }
+
+  .bonus-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+  .bonuses { display: flex; gap: 10px; margin-bottom: 26px; }
+  .bonus { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #fff; border: 1px solid var(--primary-50); border-radius: 14px; box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .18); }
+  .b-ic { flex: none; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #ff4b55, #e0222e); color: #fff; display: grid; place-items: center; box-shadow: 0 4px 10px -4px rgba(224, 34, 46, .6); }
+  .b-ic svg { width: 18px; height: 18px; }
+  .b-txt { min-width: 0; }
+  .b-txt b { display: block; font-size: 14px; font-weight: 600; line-height: 18px; }
+  .b-txt small { display: block; font-size: 12px; line-height: 16px; color: var(--text-70); margin-top: 2px; }
+  .b-ok { margin-left: auto; flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; display: grid; place-items: center; animation: pop .4s .6s ease-out both; }
+  .b-ok svg { width: 11px; height: 11px; }
+
+  .actions { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 28px; border-radius: 4px; background: var(--primary); color: #fff; font-size: 16px; font-weight: 500; text-decoration: none; box-shadow: 0 3px 10px 0 var(--primary-50); transition: background .2s, box-shadow .2s; }
+  .btn:hover { background: #c81c27; box-shadow: 0 5px 16px 0 rgba(224, 34, 46, .55); }
+  .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .redirect { flex: 1; min-width: 220px; font-size: 13px; color: var(--text-70); }
+  .redirect .bar { height: 3px; border-radius: 2px; background: var(--line); margin-top: 8px; overflow: hidden; }
+  .redirect .bar i { display: block; height: 100%; background: var(--primary); transform-origin: left; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+  @keyframes pop { 0% { transform: scale(.5); opacity: 0; } 70% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .mark path { stroke-dashoffset: 0; }
+  }
+  @media (max-width: 640px) {
+    .head { padding: 10px 20px; }
+    .head img { height: 40px; }
+    .page { padding: 28px 20px 32px; }
+    h1 { font-size: 26px; }
+    .data div { grid-template-columns: 1fr; gap: 2px; }
+    .bonuses { flex-direction: column; }
+    .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header class="head"><a href="index.html"><img src="logo.png" alt="АФТОН, противопожарные системы"></a></header>
+
+<main class="page">
+  <div class="card">
+    <div class="mark"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l5 5 11-11"/></svg></div>
+    <h1>Спасибо, заявка у&nbsp;нас!</h1>
+    <p class="lead">Людмила посмотрит ответы и&nbsp;позвонит, если что-то нужно уточнить.</p>
+
+    <dl class="data" id="data" hidden></dl>
+
+    <div class="bonus-title">Это теперь ваше:</div>
+    <div class="bonuses">
+      <div class="bonus">
+        <span class="b-ic"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5L5 15"/><circle cx="6" cy="6" r="2"/><circle cx="14" cy="14" r="2"/></svg></span>
+        <div class="b-txt"><b>Скидка 1%</b><small>на&nbsp;всю смету</small></div>
+        <span class="b-ok"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 6.2l2.3 2.3 4.7-5"/></svg></span>
+      </div>
+      <div class="bonus">
+        <span class="b-ic"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2.5" width="12" height="15" rx="2"/><path d="M7 6h6M7 10h1M10 10h1M13 10h0M7 13.5h1M10 13.5h1M13 13.5h0"/></svg></span>
+        <div class="b-txt"><b>Расчёт бесплатно</b><small>посчитаем именно ваш объект</small></div>
+        <span class="b-ok"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 6.2l2.3 2.3 4.7-5"/></svg></span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="btn" href="index.html">На&nbsp;главную</a>
+      <div class="redirect">Вернём вас на&nbsp;главную через <b id="sec">10</b> с<div class="bar"><i id="bar"></i></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const REDIRECT_SECONDS = 10;
+
+  // данные заявки передаёт index.html через память вкладки (в адрес страницы не попадают)
+  let rows = [];
+  try { rows = JSON.parse(sessionStorage.getItem('afton_thanks') || '[]'); } catch (e) {}
+  if (Array.isArray(rows) && rows.length) {
+    const dl = document.getElementById('data');
+    rows.forEach(([k, v]) => {
+      if (!v) return;
+      const row = document.createElement('div');
+      const dt = document.createElement('dt'); dt.textContent = k;
+      const dd = document.createElement('dd'); dd.textContent = v;
+      row.append(dt, dd);
+      dl.appendChild(row);
+    });
+    dl.hidden = !dl.children.length;
+  }
+
+  // автовозврат на главную
+  const deadline = Date.now() + REDIRECT_SECONDS * 1000;
+  const bar = document.getElementById('bar');
+  bar.style.transition = `transform ${REDIRECT_SECONDS}s linear`;
+  requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.transform = 'scaleX(0)'; }));
+  const timer = setInterval(() => {
+    const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    document.getElementById('sec').textContent = left;
+    if (left === 0) { clearInterval(timer); location.href = 'index.html'; }
+  }, 250);
+</script>
+</body>
+</html>

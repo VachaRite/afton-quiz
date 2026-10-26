@@ -108,9 +108,9 @@
   .quiz { position: fixed; inset: 0; display: flex; animation: fade .15s ease-out; }
   @keyframes fade { from { opacity: 0; } }
   .quiz-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .quiz-head { display: flex; align-items: center; gap: 20px; padding: 10px 72px; border-bottom: 1px solid var(--line); }
-  .quiz-head .logo { height: 34px; padding-right: 20px; border-right: 1px solid var(--line); }
-  .quiz-head h3 { font-family: "Times New Roman", Times, serif; font-size: 14px; line-height: 22px; font-weight: 400; color: var(--text); opacity: .8; }
+  .quiz-head { display: flex; align-items: center; gap: 24px; padding: 12px 72px; border-bottom: 1px solid var(--line); }
+  .quiz-head .logo { height: 52px; padding-right: 24px; border-right: 1px solid var(--line); }
+  .quiz-head h3 { font-size: 16px; line-height: 22px; font-weight: 500; color: var(--text-70); }
   .quiz-content { flex: 1; min-height: 0; overflow: auto; padding: 22px 72px 16px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
   .quiz-content::-webkit-scrollbar { width: 6px; }
   .quiz-content::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
@@ -292,7 +292,9 @@
     .quiz-side .bonus { flex: 1; padding: 10px; gap: 8px; }
     .b-ic { width: 30px; height: 30px; }
     .b-txt b { font-size: 12px; line-height: 16px; }
-    .quiz-head { padding: 12px 20px; }
+    .quiz-head { padding: 10px 20px; gap: 14px; }
+    .quiz-head .logo { height: 40px; padding-right: 14px; }
+    .quiz-head h3 { font-size: 14px; line-height: 19px; }
     .quiz-content { padding: 18px 20px; }
     .q-title { font-size: 24px; }
     .variants { grid-template-columns: 1fr; gap: 10px; }
@@ -497,7 +499,6 @@
       { t: 'num', name: 'qty', label: 'Количество люков', ph: 'шт.' },
       { t: 'dims', label: 'Габариты люка', unit: 'мм' },
       { t: 'num', name: 'base', label: 'Высота основания (мм)', ph: 'мм' },
-      { t: 'radio', name: 'baseType', label: 'Тип основания', options: ['Прямое', 'Наклонное'] },
       { t: 'radio', name: 'filling', label: 'Параметры заполнения (купола)', options: ['Глухое (алюминиевая плита)', 'Поликарбонат 16 мм', 'Поликарбонат 20 мм', 'Двухслойный акриловый купол', 'Двухслойный купол из монолитного поликарбоната'] },
       { t: 'radio', name: 'opacity', label: 'Прозрачность купола', options: ['Непрозрачный', 'Молочный', 'Прозрачный'] },
       { t: 'check', name: 'purpose', label: 'Назначение', hint: 'можно выбрать несколько', options: ['Освещение', 'Дымоудаление', 'Вентиляция'] },
@@ -548,11 +549,7 @@
       <div class="fs"><span class="fs-label">Контактная информация</span>
         <input class="field-input" name="org" data-label="Организация" placeholder="Название организации" autocomplete="organization">
         <div class="fs-row">
-          <input class="field-input" name="city" data-label="Город" placeholder="Город" autocomplete="address-level2">
           <div data-f="fio"><input class="field-input" name="fio" data-label="ФИО" placeholder="Ф. И. О. заявителя${req}" autocomplete="name"><div class="err">Напишите фамилию и${NBSP}имя</div></div>
-        </div>
-        <div class="fs-row">
-          <input class="field-input" name="position" data-label="Должность" placeholder="Должность" autocomplete="organization-title">
           <div data-f="phone"><input class="field-input" name="phone" type="tel" data-label="Телефон" placeholder="Контактный телефон/факс${req}" autocomplete="tel"><div class="err">В${NBSP}номере не${NBSP}хватает цифр</div></div>
         </div>
         <div data-f="email" style="margin-top:10px"><input class="field-input" name="email" type="email" data-label="E-mail" placeholder="E-mail${req}" autocomplete="email"><div class="err">Похоже, в${NBSP}почте опечатка</div></div>
@@ -574,6 +571,7 @@
         <div class="sheet-card">
           <form id="sheetCalc" data-kind="Заявка на расчёт" novalidate>
             ${sh.fields.map(fieldHTML).join('')}
+            <div class="fs" data-f="objectCity"><span class="fs-label">В${NBSP}каком городе находится объект<small>(куда считаем доставку)</small></span><input class="field-input" name="objectCity" data-label="Город объекта (доставка)" placeholder="Например, Москва" autocomplete="off"><div class="err">Укажите город, где находится объект</div></div>
             ${contactsHTML(sh.plain)}
             <button class="q-btn lead-submit" type="submit">Отправить заявку</button>
           </form>
@@ -597,6 +595,7 @@
       ['fio', 'phone', 'email'].forEach(n => f[n].addEventListener('input', () => {
         if (RULES[n](f[n].value)) f.querySelector(`[data-f="${n}"]`).classList.remove('invalid');
       }));
+      if (f.objectCity) f.objectCity.addEventListener('input', () => { if (f.objectCity.value.trim().length > 1) f.querySelector('[data-f="objectCity"]').classList.remove('invalid'); });
       if (f.agree) f.agree.addEventListener('change', () => f.querySelector('.consent').classList.remove('invalid'));
       f.addEventListener('submit', e => { e.preventDefault(); submitSheet(f); });
     });
@@ -608,6 +607,11 @@
       f.querySelector(`[data-f="${n}"]`).classList.toggle('invalid', !valid);
       if (!valid) ok = false;
     });
+    if (f.objectCity) {
+      const cityOk = f.objectCity.value.trim().length > 1;
+      f.querySelector('[data-f="objectCity"]').classList.toggle('invalid', !cityOk);
+      if (!cityOk) ok = false;
+    }
     const agreed = !f.agree || f.agree.checked;
     if (f.agree) f.querySelector('.consent').classList.toggle('invalid', !agreed);
     if (!ok || !agreed) { f.querySelector('.invalid .field-input')?.focus(); return; }
@@ -974,39 +978,15 @@
     }
   }
 
+  // заявка ушла: передаём данные на thanks.html через память вкладки и переходим туда
   function showDone(lead, customRows) {
-    $('nav').hidden = true;
-    renderBonuses(true);
     const rows = customRows || [
       ['ФИО', lead.fio], ['Телефон', lead.phone], ['Почта', lead.email],
       ['Проект', lead.file ? `прикреплён (${lead.file})` : 'не прикреплён'],
       ['Что считаем', lead.product], ['Тип', lead.type], ['Размер проёма', lead.size], ['Автоматика', lead.auto], ['Сроки', lead.time]
     ].filter(([, v]) => v);
-    const wrap = $('wrap');
-    wrap.classList.add('out');
-    setTimeout(() => {
-      wrap.innerHTML = `
-        <div class="done">
-          <div class="done-mark"><svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l5 5 11-11"/></svg></div>
-          <h2 class="q-title">Спасибо, заявка у нас!</h2>
-          <p class="q-sub" style="margin-top:-8px">Людмила посмотрит ответы и позвонит, если что-то нужно уточнить.</p>
-          <dl class="data">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
-          <div class="done-bonus-title">Это теперь ваше:</div>
-          <div class="bonus-row">${bonusHTML(true)}</div>
-          <div class="redirect">Вернём вас на главную через <b id="sec">${REDIRECT_SECONDS}</b> с<div class="bar"><i id="bar"></i></div></div>
-        </div>`;
-      wrap.classList.remove('out'); wrap.classList.add('pre'); void wrap.offsetWidth;
-      setTimeout(() => wrap.classList.remove('pre'), 200);
-      const bar = $('bar'), deadline = Date.now() + REDIRECT_SECONDS * 1000;
-      bar.style.transition = `transform ${REDIRECT_SECONDS}s linear`;
-      requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.transform = 'scaleX(0)'; }));
-      clearInterval(redirectTimer);
-      redirectTimer = setInterval(() => {
-        const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-        if ($('sec')) $('sec').textContent = left;
-        if (left === 0) backToStart();
-      }, 250);
-    }, 190);
+    try { sessionStorage.setItem('afton_thanks', JSON.stringify(rows)); } catch (e) {}
+    location.href = 'thanks.html';
   }
 
   function maskPhone(v) {
