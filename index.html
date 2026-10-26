@@ -493,15 +493,15 @@
   // ---------- опросные листы (люки, фрамуги, зенитные фонари, выход на кровлю) ----------
   const SHEET_EMAIL = 'info@afton.ru';
   const SHEETS = {
-    hatch: { title: 'Заявка на расчёт люков дымоудаления', fields: [
+    hatch: { title: 'Заявка на расчёт люков дымоудаления', plain: true, fields: [
       { t: 'num', name: 'qty', label: 'Количество люков', ph: 'шт.' },
       { t: 'dims', label: 'Габариты люка', unit: 'мм' },
       { t: 'num', name: 'base', label: 'Высота основания (мм)', ph: 'мм' },
-      { t: 'radio', name: 'leaves', label: 'Тип люка', options: ['Одностворчатый', 'Двухстворчатый', 'Взрывоустойчивый'] },
-      { t: 'radio', name: 'filling', label: 'Параметры заполнения', options: ['Поликарбонат 16 мм', 'Поликарбонат 20 мм', 'Сэндвич-панель'] },
-      { t: 'radio', name: 'drive', label: 'Привод', options: ['Электрический', 'Пневматический', 'Нужна консультация'] },
-      { t: 'check', name: 'purpose', label: 'Назначение', hint: 'можно выбрать несколько', options: ['Дымоудаление', 'Вентиляция', 'Выход на кровлю'] },
-      { t: 'flag', name: 'panel', label: 'Нужен щит управления' }
+      { t: 'radio', name: 'baseType', label: 'Тип основания', options: ['Прямое', 'Наклонное'] },
+      { t: 'radio', name: 'filling', label: 'Параметры заполнения (купола)', options: ['Глухое (алюминиевая плита)', 'Поликарбонат 16 мм', 'Поликарбонат 20 мм', 'Двухслойный акриловый купол', 'Двухслойный купол из монолитного поликарбоната'] },
+      { t: 'radio', name: 'opacity', label: 'Прозрачность купола', options: ['Непрозрачный', 'Молочный', 'Прозрачный'] },
+      { t: 'check', name: 'purpose', label: 'Назначение', hint: 'можно выбрать несколько', options: ['Освещение', 'Дымоудаление', 'Вентиляция'] },
+      { t: 'radio', name: 'control', label: 'Система управления', options: ['Нет', 'Электрическая'] }
     ] },
     transom: { title: 'Заявка на расчёт фрамуг дымоудаления', fields: [
       { t: 'num', name: 'qty', label: 'Количество фрамуг', ph: 'шт.' },
@@ -542,24 +542,25 @@
     if (f.t === 'flag') return `<div class="fs"><label class="opt-tile flag"><input type="checkbox" name="${f.name}" value="да" data-label="${f.label}">${f.label}</label></div>`;
     return '';
   }
-  function contactsHTML() {
+  function contactsHTML(plain = false) {
+    const req = plain ? '' : ' *';
     return `
       <div class="fs"><span class="fs-label">Контактная информация</span>
         <input class="field-input" name="org" data-label="Организация" placeholder="Название организации" autocomplete="organization">
         <div class="fs-row">
           <input class="field-input" name="city" data-label="Город" placeholder="Город" autocomplete="address-level2">
-          <div data-f="fio"><input class="field-input" name="fio" data-label="ФИО" placeholder="Ф. И. О. заявителя *" autocomplete="name"><div class="err">Напишите фамилию и${NBSP}имя</div></div>
+          <div data-f="fio"><input class="field-input" name="fio" data-label="ФИО" placeholder="Ф. И. О. заявителя${req}" autocomplete="name"><div class="err">Напишите фамилию и${NBSP}имя</div></div>
         </div>
         <div class="fs-row">
           <input class="field-input" name="position" data-label="Должность" placeholder="Должность" autocomplete="organization-title">
-          <div data-f="phone"><input class="field-input" name="phone" type="tel" data-label="Телефон" placeholder="Контактный телефон/факс *" autocomplete="tel"><div class="err">В${NBSP}номере не${NBSP}хватает цифр</div></div>
+          <div data-f="phone"><input class="field-input" name="phone" type="tel" data-label="Телефон" placeholder="Контактный телефон/факс${req}" autocomplete="tel"><div class="err">В${NBSP}номере не${NBSP}хватает цифр</div></div>
         </div>
-        <div data-f="email" style="margin-top:10px"><input class="field-input" name="email" type="email" data-label="E-mail" placeholder="E-mail *" autocomplete="email"><div class="err">Похоже, в${NBSP}почте опечатка</div></div>
+        <div data-f="email" style="margin-top:10px"><input class="field-input" name="email" type="email" data-label="E-mail" placeholder="E-mail${req}" autocomplete="email"><div class="err">Похоже, в${NBSP}почте опечатка</div></div>
       </div>
       <div class="fs"><span class="fs-label">Дополнительная информация</span>
         <textarea class="field-input" name="comment" data-label="Комментарий" placeholder="Любые дополнительные пожелания или комментарии"></textarea></div>
       <input class="trap" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <label class="consent"><input type="checkbox" name="agree"><span class="box"></span>Согласен на${NBSP}обработку персональных данных</label>`;
+      ${plain ? '' : `<label class="consent"><input type="checkbox" name="agree"><span class="box"></span>Согласен на${NBSP}обработку персональных данных</label>`}`;
   }
   function sheetHTML(sh) {
     return `
@@ -573,12 +574,12 @@
         <div class="sheet-card">
           <form id="sheetCalc" data-kind="Заявка на расчёт" novalidate>
             ${sh.fields.map(fieldHTML).join('')}
-            ${contactsHTML()}
+            ${contactsHTML(sh.plain)}
             <button class="q-btn lead-submit" type="submit">Отправить заявку</button>
           </form>
           <form id="sheetDocs" data-kind="Запрос документации" novalidate hidden>
             ${fieldHTML({ t: 'check', name: 'docs', label: 'Какие документы нужны', hint: 'можно выбрать несколько', options: DOCS })}
-            ${contactsHTML()}
+            ${contactsHTML(sh.plain)}
             <button class="q-btn lead-submit" type="submit">Запросить документацию</button>
           </form>
         </div>
@@ -596,7 +597,7 @@
       ['fio', 'phone', 'email'].forEach(n => f[n].addEventListener('input', () => {
         if (RULES[n](f[n].value)) f.querySelector(`[data-f="${n}"]`).classList.remove('invalid');
       }));
-      f.agree.addEventListener('change', () => f.querySelector('.consent').classList.remove('invalid'));
+      if (f.agree) f.agree.addEventListener('change', () => f.querySelector('.consent').classList.remove('invalid'));
       f.addEventListener('submit', e => { e.preventDefault(); submitSheet(f); });
     });
   }
@@ -607,8 +608,9 @@
       f.querySelector(`[data-f="${n}"]`).classList.toggle('invalid', !valid);
       if (!valid) ok = false;
     });
-    f.querySelector('.consent').classList.toggle('invalid', !f.agree.checked);
-    if (!ok || !f.agree.checked) { f.querySelector('.invalid .field-input')?.focus(); return; }
+    const agreed = !f.agree || f.agree.checked;
+    if (f.agree) f.querySelector('.consent').classList.toggle('invalid', !agreed);
+    if (!ok || !agreed) { f.querySelector('.invalid .field-input')?.focus(); return; }
     if (f.website.value) return; // ловушка для спам-ботов
 
     // собираем заполненные поля по порядку, как в листе
