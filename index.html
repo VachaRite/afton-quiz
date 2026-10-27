@@ -231,7 +231,10 @@
 
   /* Нижняя панель */
   .quiz-nav { display: flex; align-items: center; gap: 20px; padding: 16px 74px 28px 74px; }
-  .ready { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+  .ready { display: flex; align-items: center; gap: 12px; }
+  .legal { display: flex; flex-wrap: wrap; gap: 2px 16px; margin-right: auto; font-size: 12px; line-height: 16px; }
+  .legal a { color: var(--text-70); text-decoration: none; border-bottom: 1px solid var(--line); }
+  .legal a:hover { color: var(--text); border-color: currentColor; }
   .ready svg { width: 28px; height: 28px; transform: rotate(-90deg); }
   .ready .track { stroke: var(--line); }
   .ready .val { stroke: var(--primary); transition: stroke-dashoffset .3s ease; }
@@ -300,7 +303,9 @@
     .quiz-content { padding: 18px 20px; }
     .q-title { font-size: 24px; }
     .variants { grid-template-columns: 1fr; gap: 10px; }
-    .quiz-nav { padding: 12px 20px 20px; }
+    .quiz-nav { padding: 12px 20px 20px; flex-wrap: wrap; }
+    .ready { margin-right: auto; }
+    .legal { order: 5; flex-basis: 100%; margin-right: 0; }
     .enter-hint { display: none; }
     .data div { grid-template-columns: 1fr; gap: 2px; }
   }
@@ -368,7 +373,7 @@
         <div class="bonus-row" data-bonuses></div>
       </div>
       <!-- Реквизиты: замените на настоящие -->
-      <div class="start-foot">ООО «АФТОН» ИНН 0000000000 Город, ул. Улица, д. 0</div>
+      <div class="start-foot">ООО «АФТОН» ИНН 5263091744</div>
     </div>
   </div>
 </section>
@@ -384,6 +389,11 @@
         <svg viewBox="0 0 28 28"><circle class="track" cx="14" cy="14" r="12" fill="none" stroke-width="3"/><circle class="val" id="ring" cx="14" cy="14" r="12" fill="none" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4"/></svg>
         <div class="ready-text">Готово<b id="pct">0%</b></div>
       </div>
+      <nav class="legal">
+        <a href="privacy.html" target="_blank">Политика конфиденциальности</a>
+        <a href="personal-data.html" target="_blank">Обработка персональных данных</a>
+        <a href="cookies.html" target="_blank">Использование cookie</a>
+      </nav>
       <button class="nav-back" id="back" aria-label="Назад"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 8H3M7 4L3 8l4 4"/></svg></button>
       <div class="nav-next-wrap">
         <button class="q-btn nav-next" id="next"><span id="nextText">Далее</span><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
@@ -439,7 +449,7 @@
 
   // продукты на втором экране (порядок = порядок карточек)
   const PRODUCTS = [
-    { key: 'hatch', value: 'люки дымоудаления', badge: 'Люки дымоудаления', img: 'img/hatch.webp', caption: 'Одно- и двухстворчатые, взрывоустойчивые', art: ART.double,
+    { key: 'hatch', value: 'люки дымоудаления', badge: 'Люки дымоудаления', img: 'img/hatch.webp', caption: 'Одно- и двухстворчатые люки дымоудаления', art: ART.double,
       typeTitle: 'Какие люки нужны?', types: ['одностворчатые', 'двухстворчатые', 'взрывоустойчивые', 'не знаю, подскажите'],
       typeCards: [
         { badge: 'Одностворчатые', img: 'img/hatch-single.webp', caption: 'Одна створка, проём поменьше', art: ART.single },
@@ -577,7 +587,7 @@
       <div class="fs"><span class="fs-label">Контактная информация</span>
         <input class="field-input" name="org" data-label="Организация" placeholder="Название организации" autocomplete="organization">
         <div class="fs-row">
-          <div data-f="fio"><input class="field-input" name="fio" data-label="ФИО" placeholder="Ф. И. О. заявителя${req}" autocomplete="name"><div class="err">Напишите, как к${NBSP}вам обращаться</div></div>
+          <div data-f="fio"><input class="field-input" name="fio" data-label="Имя" placeholder="Ваше имя${req}" autocomplete="name"><div class="err">Напишите, как к${NBSP}вам обращаться</div></div>
           <div data-f="phone"><input class="field-input" name="phone" type="tel" data-label="Телефон" placeholder="Контактный телефон/факс${req}" autocomplete="tel"><div class="err">В${NBSP}номере не${NBSP}хватает цифр</div></div>
         </div>
         <div data-f="email" style="margin-top:10px"><input class="field-input" name="email" type="email" data-label="E-mail" placeholder="E-mail${req}" autocomplete="email"><div class="err">Похоже, в${NBSP}почте опечатка</div></div>
