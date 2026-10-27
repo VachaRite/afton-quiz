@@ -356,7 +356,7 @@
   </div>
 
   <div class="start-panel">
-    <div class="start-head"><img class="logo" src="logo.png" alt="АФТОН, противопожарные системы"></div>
+    <div class="start-head"><a class="home" href="./"><img class="logo" src="logo.png" alt="АФТОН, противопожарные системы"></a></div>
     <div class="start-body">
       <h1>Сколько будут стоить люки дымоудаления на вашем объекте?</h1>
       <!-- Преимущества: замените на свои -->
@@ -382,7 +382,7 @@
 <!-- =================== КВИЗ =================== -->
 <section class="quiz" id="quiz" hidden>
   <div class="quiz-main">
-    <div class="quiz-head"><img class="logo" src="logo.png" alt="АФТОН"><h3>Пара коротких вопросов, и мы посчитаем ваш объект</h3></div>
+    <div class="quiz-head"><a class="home" href="./"><img class="logo" src="logo.png" alt="АФТОН"></a><h3>Пара коротких вопросов, и мы посчитаем ваш объект</h3></div>
     <div class="quiz-content"><div class="q-wrap" id="wrap"></div></div>
     <div class="quiz-nav" id="nav">
       <div class="ready" aria-hidden="true">
@@ -810,6 +810,9 @@
     render(false);
     window.scrollTo(0, 0);
   }
+  // клик по логотипу всегда возвращает на начальный экран
+  document.querySelectorAll('a.home').forEach(a => a.addEventListener('click', e => { e.preventDefault(); backToStart(); }));
+
   function backToStart() {
     clearInterval(redirectTimer);
     reset();
