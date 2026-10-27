@@ -459,7 +459,7 @@
       ], size: true, auto: true },
     { key: 'skylight', value: 'зенитные фонари', badge: 'Зенитные фонари', img: 'img/skylight-arch.webp', caption: 'Свет и проветривание через кровлю', art: ART.skylight,
       typeTitle: 'Какие фонари нужны?', types: ['арочные', 'треугольные', 'из поликарбоната', 'не знаю, подскажите'], size: true },
-    { key: 'roof', value: 'выход на крышу', badge: 'Выход на крышу', img: 'img/roof-hatch.webp', caption: 'Люки и лестницы на кровлю', art: ART.roof,
+    { key: 'roof', value: 'выход на крышу', badge: 'Выход на крышу', img: 'img/roof-hatch.webp', caption: 'Люки выхода на плоскую кровлю обычные и противопожарные', art: ART.roof,
       typeTitle: 'Какой выход на крышу нужен?', types: ['люк выхода на кровлю', 'противопожарный люк', 'люк с лестницей', 'не знаю, подскажите'], size: true },
     { key: 'auto', value: 'автоматика дымоудаления', badge: 'Автоматика', img: 'img/auto-panel.webp', caption: 'Щиты, приводы и датчики', art: ART.auto,
       typeTitle: 'Что нужно из автоматики?', types: ['щит управления', 'приводы', 'датчики', 'весь комплект'] },
@@ -595,7 +595,7 @@
       <div class="fs"><span class="fs-label">Дополнительная информация</span>
         <textarea class="field-input" name="comment" data-label="Комментарий" placeholder="Любые дополнительные пожелания или комментарии"></textarea></div>
       <input class="trap" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-      ${plain ? '' : `<label class="consent"><input type="checkbox" name="agree"><span class="box"></span>Согласен на${NBSP}обработку персональных данных</label>`}`;
+      <label class="consent"><input type="checkbox" name="agree"><span class="box"></span>Согласен на${NBSP}обработку персональных данных</label>`;
   }
   function sheetHTML(sh) {
     return `
